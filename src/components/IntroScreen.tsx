@@ -8,11 +8,10 @@ type IntroScreenProps = {
 };
 
 const bootLines = [
-  "$ init portfolio.build",
-  "$ loading profile ......... ok",
-  "$ indexing projects ....... ok",
-  "$ compiling stack.json .... ok",
-  "$ ready",
+  "Setting the type",
+  "Inking the plates",
+  "Aligning the press",
+  "Ready to print",
 ];
 
 const AUTO_DISMISS_MS = 2600;
@@ -39,7 +38,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
           key="intro"
           role="status"
           aria-label="Loading site"
-          className="blueprint-grid fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg px-6"
+          className="paper-grain fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg px-6"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: EXIT_DURATION_MS / 1000, ease: "easeInOut" }}

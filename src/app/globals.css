@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0a0f1c;
-  --bg-elevated: #101a2e;
-  --ink: #e7ecf5;
-  --muted: #7c8aa8;
-  --accent: #e7a24c;
-  --accent-2: #5fd0c0;
-  --line: rgba(231, 236, 245, 0.1);
-  --line-strong: rgba(231, 236, 245, 0.2);
+  --bg: #f4eee1;
+  --bg-elevated: #eae1cc;
+  --ink: #241f1a;
+  --muted: #746b5a;
+  --accent: #2f4b7c;
+  --accent-2: #8a6d3b;
+  --line: rgba(36, 31, 26, 0.12);
+  --line-strong: rgba(36, 31, 26, 0.28);
 }
 
 @theme inline {
@@ -20,8 +20,8 @@
   --color-accent-2: var(--accent-2);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
-  --font-display: var(--font-space-grotesk);
-  --font-mono: var(--font-jetbrains-mono);
+  --font-display: var(--font-lora);
+  --font-mono: var(--font-inter);
   --font-body: var(--font-inter);
 }
 
@@ -39,11 +39,9 @@ body {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 
-.blueprint-grid {
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 40px 40px;
+.paper-grain {
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 18px 18px;
 }
 
 .corner-brackets {
@@ -56,7 +54,7 @@ body {
   width: 14px;
   height: 14px;
   border-color: var(--accent-2);
-  opacity: 0.6;
+  opacity: 0.7;
 }
 .corner-brackets::before {
   top: -1px;
