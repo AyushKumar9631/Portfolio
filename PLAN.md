@@ -43,14 +43,17 @@ checked off and its "Session log" filled in, and a fresh zip of the project
 portfolio/
 ├── src/
 │   ├── app/
-│   │   ├── globals.css      ✅ theme tokens, blueprint grid, corner brackets, reduced-motion
-│   │   ├── layout.tsx       ✅ fonts wired (Space Grotesk / JetBrains Mono / Inter), metadata
-│   │   └── page.tsx         ⚠️ still default Next.js starter — needs rebuilding in Task 7
+│   │   ├── globals.css       ✅ theme tokens, blueprint grid, corner brackets, reduced-motion
+│   │   ├── layout.tsx        ✅ fonts wired (Space Grotesk / JetBrains Mono / Inter), metadata
+│   │   └── page.tsx          ⚠️ growing incrementally each task — Intro + Nav + hero stub so far, finalized in Task 7
+│   ├── components/
+│   │   ├── IntroScreen.tsx   ✅ boot sequence, auto-dismiss + skip, onComplete callback
+│   │   └── Nav.tsx           ✅ fixed header, desktop links, animated mobile menu
 │   └── lib/
-│       └── data.ts          ✅ placeholder profile/projects/stack/timeline
-├── public/                  default Next.js SVGs, unused, safe to ignore/delete later
-├── package.json             ✅ next, react, tailwindcss, framer-motion, @supabase/supabase-js, lucide-react
-└── (config files)           ✅ tsconfig, eslint, postcss — untouched defaults, fine as-is
+│       └── data.ts           ✅ placeholder profile/projects/stack/timeline
+├── public/                   default Next.js SVGs, unused, safe to ignore/delete later
+├── package.json               ✅ next, react, tailwindcss, framer-motion, @supabase/supabase-js, lucide-react
+└── (config files)             ✅ tsconfig, eslint, postcss — untouched defaults, fine as-is
 ```
 
 ---
@@ -64,10 +67,12 @@ Next.js + TS + Tailwind app created. Installed `framer-motion`, `@supabase/supab
 
 ---
 
-### ☐ Task 1 — Nav + intro/boot screen
-Build `src/components/Nav.tsx` (fixed header, links to each section, mobile menu) and `src/components/IntroScreen.tsx` (full-screen boot sequence on first load — a few lines of "system check" style text animating in with Framer Motion, then a "Skip" button and auto-dismiss after ~2.5s into the main site). Keep it a client component; no external state/storage needed, plain `useState`.
+### ✅ Task 1 — Nav + intro/boot screen (DONE)
+Built `src/components/Nav.tsx` (fixed header, name/logo, links to `#work #stack #timeline #contact`, animated mobile menu via Framer Motion + lucide icons) and `src/components/IntroScreen.tsx` (full-screen boot sequence — staggered "system check" lines, auto-dismisses after 2.6s, "SKIP →" button dismisses immediately, `onComplete` callback prop for Task 7 to hook into, respects `AnimatePresence` exit animation).
 
-**Acceptance:** Both components render in isolation without errors (temporarily drop them into `page.tsx` to eyeball them). Intro dismisses on click and on timer. Nav links are placeholder `href="#section-id"` anchors matching section ids that will exist after Task 7.
+`src/app/page.tsx` now wires `IntroScreen` + `Nav` + a placeholder hero stub — this file will keep growing one section per task and gets finalized in Task 7.
+
+**Session log:** `npm run build` failed in the sandbox only on the Google Fonts fetch (`fonts.googleapis.com` isn't reachable from this container — 403). Isolated the issue by temporarily stripping the font imports: with fonts removed, `next build` compiled clean, and `tsc --noEmit` + `eslint` both passed with zero errors on the real (fonts-included) `layout.tsx`. This confirms the component code is correct — the font fetch will succeed normally on Vercel and on your local machine, which both have unrestricted internet access. No action needed from you; just be aware a from-scratch `npm run build` inside a network-restricted Claude sandbox will show this same font error in future sessions — it's environmental, not a bug.
 
 ---
 
