@@ -1,14 +1,19 @@
 import IntroScreen from "@/components/IntroScreen";
 import Nav from "@/components/Nav";
+import Hero from "@/components/Hero";
 
 export default function Home() {
   return (
     <>
       <IntroScreen />
       <Nav />
-      <main id="top" className="pt-16">
-        <section className="flex min-h-screen items-center justify-center font-mono text-sm text-muted">
-          Hero section — built in Task 2
+      <main id="top">
+        <Hero />
+        <section
+          id="work"
+          className="flex min-h-screen items-center justify-center font-mono text-sm text-muted"
+        >
+          Work section — built in Task 3
         </section>
       </main>
     </>
