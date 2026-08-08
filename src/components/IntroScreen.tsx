@@ -21,7 +21,6 @@ const proofMarks = [
   { text: "PRESS READY", className: "left-[4%] top-[48%] -rotate-2" },
 ];
 
-const AUTO_REVEAL_MS = 12000;
 const STAMP_DURATION_MS = 650;
 const EXIT_DURATION_MS = 500;
 
@@ -36,8 +35,8 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
   const springY = useSpring(cursorY, { stiffness: 400, damping: 32 });
 
   function handleMouseMove(e: React.MouseEvent) {
-    cursorX.set(e.clientX - 56);
-    cursorY.set(e.clientY - 68);
+    cursorX.set(e.clientX - 25);
+    cursorY.set(e.clientY - 130);
   }
 
   function trigger() {
@@ -56,14 +55,6 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
     const t = setTimeout(() => onComplete?.(), EXIT_DURATION_MS);
     return () => clearTimeout(t);
   }, [visible, onComplete]);
-
-  // Accessibility / fallback: reveal automatically if no one interacts.
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (!revealingRef.current) skip();
-    }, AUTO_REVEAL_MS);
-    return () => clearTimeout(t);
-  }, []);
 
   return (
     <AnimatePresence>
@@ -90,7 +81,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
           <button
             type="button"
             onClick={skip}
-            className="absolute right-6 top-6 border border-line-strong px-3 py-1.5 font-mono text-[10px] tracking-widest text-muted transition-colors hover:border-accent hover:text-ink"
+            className="absolute right-6 top-6 border border-line-strong px-3 py-1.5 font-mono text-[10px] tracking-widest text-muted transition-colors hover:border-accent hover:text-ink sm:cursor-none"
           >
             SKIP INTRO
           </button>
@@ -100,7 +91,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
             onMouseEnter={trigger}
             onFocus={trigger}
             onClick={trigger}
-            className="group relative font-display text-4xl font-semibold tracking-tight text-ink outline-none sm:text-6xl md:text-7xl"
+            className="group relative font-display text-4xl font-semibold tracking-tight text-ink outline-none sm:cursor-none sm:text-6xl md:text-7xl"
           >
             {profile.name}
             <AnimatePresence>
