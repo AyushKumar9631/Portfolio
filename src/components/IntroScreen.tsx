@@ -197,29 +197,40 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               className="grid h-full w-full auto-rows-min grid-cols-3 gap-x-3 gap-y-3 [grid-auto-flow:dense] sm:grid-cols-6 lg:grid-cols-9"
             >
               {blocks.map((block, i) => {
-                const spanClass =
-                  block.type === "regular"
-                    ? "col-span-1"
-                    : "col-span-2 lg:col-span-3";
+                // Only the HEADLINE spans the story's full column width, the
+                // way a real front-page headline banners over its columns.
+                // The body text underneath stays column-width — laid out as
+                // its own mini multi-column flow (`columns-2`) rather than
+                // stretched into one wide paragraph, or a 2-column-wide
+                // "story" just reads as an oversized single column of text,
+                // not an actual newspaper spread.
+                const isFeature = block.type === "feature";
+                const headlineSpanClass = isFeature
+                  ? "col-span-2 lg:col-span-3"
+                  : "col-span-1";
                 const isFirstTextBlock = i === 0;
 
                 if (block.type === "image") {
+                  // Deliberately kept to a single narrow column and capped
+                  // with an explicit max-width — a photo module in this
+                  // texture should read as a small inset graphic among the
+                  // text, not a dominant block that outweighs everything
+                  // around it.
                   return (
-                    <div key={i} className={`${spanClass} mb-2.5`}>
-                      <div className="flex aspect-[4/3] items-center justify-center border border-dashed border-line-strong bg-bg-elevated/40 p-3 text-muted/30">
+                    <div key={i} className="col-span-1 mb-2.5">
+                      <div className="mx-auto flex aspect-[4/3] max-w-[72px] items-center justify-center border border-dashed border-line-strong bg-bg-elevated/40 p-1.5 text-muted/30 sm:max-w-[92px]">
                         <ImagePlaceholderIcon />
                       </div>
-                      <div className="mt-1 h-px w-full bg-line" />
-                      <p className="mt-1 text-center text-[7px] italic leading-tight text-muted/30 sm:text-[8px]">
+                      <div className="mx-auto mt-1 h-px w-full max-w-[72px] bg-line sm:max-w-[92px]" />
+                      <p className="mx-auto mt-1 max-w-[72px] text-center text-[6px] italic leading-tight text-muted/30 sm:max-w-[92px] sm:text-[7px]">
                         {block.caption}
                       </p>
                     </div>
                   );
                 }
 
-                const isFeature = block.type === "feature";
                 return (
-                  <div key={i} className={`${spanClass} mb-2.5`}>
+                  <div key={i} className={`${headlineSpanClass} mb-2.5`}>
                     <p
                       className={
                         isFeature
@@ -230,15 +241,23 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
                       {block.headline}
                     </p>
                     <div className="mb-1 h-px w-6 bg-line" />
-                    <p
-                      className={`text-justify text-[8px] leading-[1.5] text-muted/25 sm:text-[9px] ${
-                        isFirstTextBlock
-                          ? "first-letter:float-left first-letter:mr-1 first-letter:font-display first-letter:text-2xl first-letter:font-bold first-letter:leading-[0.8] first-letter:text-muted/45 sm:first-letter:text-3xl"
-                          : ""
-                      }`}
+                    <div
+                      className={
+                        isFeature
+                          ? "columns-2 gap-x-3 [column-rule:1px_solid_var(--line)]"
+                          : undefined
+                      }
                     >
-                      {block.body}
-                    </p>
+                      <p
+                        className={`text-justify text-[8px] leading-[1.5] text-muted/25 sm:text-[9px] ${
+                          isFirstTextBlock
+                            ? "first-letter:float-left first-letter:mr-1 first-letter:font-display first-letter:text-2xl first-letter:font-bold first-letter:leading-[0.8] first-letter:text-muted/45 sm:first-letter:text-3xl"
+                            : ""
+                        }`}
+                      >
+                        {block.body}
+                      </p>
+                    </div>
                   </div>
                 );
               })}
