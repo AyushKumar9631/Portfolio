@@ -8,18 +8,15 @@ import {
   useSpring,
 } from "framer-motion";
 import { profile } from "@/lib/data";
+import { commonWords } from "@/lib/words";
 
 type IntroScreenProps = {
   onComplete?: () => void;
 };
 
-const proofMarks = [
-  { text: "PROOF SHEET", className: "left-[8%] top-[16%] -rotate-6" },
-  { text: "DRAFT 01", className: "right-[10%] top-[22%] rotate-3" },
-  { text: "TYPESET", className: "left-[10%] bottom-[24%] rotate-2" },
-  { text: "REVISION 3", className: "right-[8%] bottom-[18%] -rotate-3" },
-  { text: "PRESS READY", className: "left-[4%] top-[48%] -rotate-2" },
-];
+// Repeated to give enough volume to fill the screen at a tiny font size,
+// like dense newsprint body text.
+const backgroundText = Array(6).fill(commonWords.join(" ")).join(" ");
 
 const STAMP_DURATION_MS = 650;
 const EXIT_DURATION_MS = 500;
@@ -69,14 +66,14 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
           exit={{ opacity: 0 }}
           transition={{ duration: EXIT_DURATION_MS / 1000, ease: "easeInOut" }}
         >
-          {proofMarks.map((mark) => (
-            <span
-              key={mark.text}
-              className={`pointer-events-none absolute select-none font-mono text-[10px] tracking-[0.3em] text-muted/50 ${mark.className}`}
-            >
-              {mark.text}
-            </span>
-          ))}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 select-none overflow-hidden p-3 sm:p-6"
+          >
+            <div className="h-full w-full columns-3 gap-3 text-justify text-[8px] leading-[1.5] text-muted/25 sm:columns-6 sm:text-[9px] lg:columns-9">
+              {backgroundText}
+            </div>
+          </div>
 
           <button
             type="button"

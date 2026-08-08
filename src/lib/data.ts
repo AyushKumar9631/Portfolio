@@ -1,14 +1,14 @@
 // Edit everything in this file with your own details.
 
 export const profile = {
-  name: "Your Name",
+  name: "Ayush Kumar",
   role: "Full-Stack Developer",
-  location: "Your City, Country",
+  location: "Patna, India",
   tagline: "I build web applications end to end, front to back.",
   summary:
     "Full-stack developer working across the MERN stack — React on the front end, Node and Express on the back end, MongoDB underneath. I like taking a project from a rough idea through to something people actually use.",
   availability: "Open to freelance & full-time roles",
-  email: "you@example.com",
+  email: "marikayush@gmial.com.com",
   github: "https://github.com/yourhandle",
   linkedin: "https://www.linkedin.com/in/yourhandle/",
 };
