@@ -36,8 +36,8 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
   const springY = useSpring(cursorY, { stiffness: 400, damping: 32 });
 
   function handleMouseMove(e: React.MouseEvent) {
-    cursorX.set(e.clientX - 14);
-    cursorY.set(e.clientY - 14);
+    cursorX.set(e.clientX - 56);
+    cursorY.set(e.clientY - 68);
   }
 
   function trigger() {
@@ -138,7 +138,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
             style={{ x: springX, y: springY }}
             className="pointer-events-none fixed left-0 top-0 z-50 hidden sm:block"
           >
-            <svg width="28" height="34" viewBox="0 0 36 44" fill="none">
+            <svg width="112" height="136" viewBox="0 0 36 44" fill="none">
               <path
                 d="M8 42 C8 42 6 36 9 34 L11 37 C9 35 7 31 11 29 L13 32 C10 29 9 22 14 17 C19 10 25 4 30 2 C33 5 34 12 30 18 C26 25 19 30 14 36 C12 38 10 40 8 42 Z"
                 fill="var(--ink)"
