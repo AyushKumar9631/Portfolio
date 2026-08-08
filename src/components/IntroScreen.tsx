@@ -28,20 +28,35 @@ const WORDS_PER_PX2 = 0.0026;
 const MIN_REPEAT = 6;
 const MAX_REPEAT = 50;
 
-// Words per faux "block" within the page grid. Kept short so several
-// blocks tile per row, like a real front page.
+// Words per faux "block" within the page flow. Kept short so several
+// blocks stack per column, like a real front page.
 const WORDS_PER_ARTICLE = 110;
 
-// Real front pages are a grid of story modules, not flowing text: a
-// headline always spans the same number of columns as its story, photos
-// span columns the same way, and a dominant story runs bigger than the
-// rest (see e.g. Andy Clarke's "Transcending CSS" ch.10 on broadsheet
-// grids). This repeating 5-block rhythm mimics that — one dominant
-// (2-col) story, a photo module, and regular 1-col stories between —
-// tiled down the page instead of one flat column of text. Each story
-// also carries a kicker (the small section label above a headline) and a
-// byline, the way real front-page copy always identifies its section and
-// author rather than just running headline-into-body.
+// --- Why this is a CSS multi-column flow and not a CSS Grid ---
+// The previous version laid blocks out on a CSS Grid (`grid-auto-flow:
+// dense`, `auto-rows-min`). That looked right in a quick check but was
+// structurally guaranteed to leave blank gaps: Grid auto-placement puts
+// several blocks of very different heights into the *same row* (a short
+// "regular" story next to a tall "feature" story), and the row track's
+// height is set by the tallest item in it. Every shorter item in that row
+// stops short of the row's bottom, leaving a blank band before the next
+// row starts — visible as exactly the kind of hole in the middle of a
+// column seen in the screenshot, not just at the very end of the page.
+// No amount of alignment tweaking fixes this: the row height itself is
+// wrong for the shorter items, so blank space is unavoidable as long as
+// unrelated-height items are forced to share a row.
+//
+// A CSS multi-column container (`columns-N` + `column-fill: auto`) has no
+// row concept at all. Content just flows down column 1 like a normal
+// document, and once it reaches the container's height it continues at
+// the top of column 2, and so on — exactly how a real newspaper column
+// flows. Each block only ever takes the vertical space its own content
+// needs, so there is no shared track for a short block to fall short of.
+// A gap simply cannot appear in the middle of a column with this model.
+// The one trade-off: a block can no longer span 2–3 of the fine columns
+// the way the old "feature" story did (multi-column has no partial-span),
+// so the dominant story is now distinguished by size/weight alone rather
+// than width — still reads as the lead story, just via type scale.
 type BlockType = "feature" | "regular" | "image";
 
 type Block = {
@@ -50,13 +65,6 @@ type Block = {
   headline: string;
   byline: string;
   body: string;
-  // Hand-split halves for the dominant "feature" story's two-column body.
-  // Deliberately NOT CSS `columns-2` — that lets the browser's column-
-  // balance algorithm decide the split, and when a grid parent stretches
-  // the item's height, the algorithm can leave the second column mostly
-  // (or entirely) blank. Splitting the word list ourselves guarantees
-  // both columns are populated every time.
-  bodyColumns?: [string, string];
   caption?: string;
 };
 
@@ -77,14 +85,6 @@ function capitalize(word: string) {
   return word ? word.charAt(0).toUpperCase() + word.slice(1) : word;
 }
 
-// Deterministic 50/50 split (ceil so an odd word out goes to column one,
-// same as a real typeset column) — no browser balancing involved, so
-// there's no way for one side to come up short.
-function splitInHalf(words: string[]): [string, string] {
-  const mid = Math.ceil(words.length / 2);
-  return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
-}
-
 function computeRepeat() {
   if (typeof window === "undefined") return 10; // generous default for first server paint
   const area = window.innerWidth * window.innerHeight;
@@ -99,11 +99,11 @@ function computeRepeat() {
 // separate word source, since none of this text is meant to be read. A
 // rotating kicker and a two-word "byline" (also lifted from the chunk's
 // own words, capitalized) are layered on the same way, purely for
-// newspaper texture. Every 5th block becomes a dominant "feature"
-// (hand-split two-column headline+body) and the block after it becomes
-// an "image" module (placeholder graphic + one-line cutline instead of
-// body copy) — a fixed rhythm rather than random, so the page reads as
-// deliberately edited rather than noisy.
+// newspaper texture. Every 5th block becomes a dominant "feature" (bigger
+// headline, more weight) and the block after it becomes an "image" module
+// (placeholder graphic + one-line cutline instead of body copy) — a fixed
+// rhythm rather than random, so the page reads as deliberately edited
+// rather than noisy.
 function buildBlocks(repeat: number): Block[] {
   const words = Array(repeat).fill(commonWords).flat();
   const blocks: Block[] = [];
@@ -128,18 +128,9 @@ function buildBlocks(repeat: number): Block[] {
         body: body.join(" "),
         caption: body.slice(0, 4).join(" "),
       });
-    } else if (cycle === 0) {
-      blocks.push({
-        type: "feature",
-        kicker,
-        headline,
-        byline,
-        body: body.join(" "),
-        bodyColumns: splitInHalf(body),
-      });
     } else {
       blocks.push({
-        type: "regular",
+        type: cycle === 0 ? "feature" : "regular",
         kicker,
         headline,
         byline,
@@ -194,9 +185,11 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
 
   // Pure decorative filler now — the name is no longer spliced into this
   // text by word index (see rationale below). Structured into headline +
-  // body + image "blocks" laid out on a real grid (rather than one flat
-  // blob or a flowing multi-column) so the page reads as an actual
-  // front-page module, not a wall of grey text.
+  // byline + body "blocks" flowing down a real multi-column layout
+  // (rather than a grid or one flat blob) so the page reads as an actual
+  // front-page module, not a wall of grey text, and so it can never leave
+  // a blank hole partway down a column (see the multi-column rationale
+  // above `BlockType`).
   const blocks = useMemo(() => buildBlocks(repeat), [repeat]);
 
   function handleMouseMove(e: React.MouseEvent) {
@@ -235,35 +228,36 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
           transition={{ duration: EXIT_DURATION_MS / 1000, ease: "easeInOut" }}
         >
           {/* Decorative texture only. Sized (via `repeat`) to always
-              overflow the viewport so the grid never runs dry and leaves
-              a blank gap on large monitors. Laid out as an actual CSS
-              grid of story modules — dominant 2-column headline+body,
-              1-column stories, and image-placeholder modules with a
-              cutline — rather than flowing multi-column text, since real
-              front pages are a grid of boxed stories with headlines and
-              photos spanning columns, not one continuous text flow.
-              `dense` packing lets smaller blocks fill gaps left by wider
-              ones instead of leaving holes. */}
+              overflow the viewport so the columns never run dry and leave
+              a blank gap at the bottom of the page. `columns-N` +
+              `column-fill: auto` flows blocks straight down column 1,
+              then column 2, etc. — normal document flow per column, with
+              no shared row to force a blank band under a short block (see
+              the full rationale above `BlockType`).
+
+              Only the small kicker+headline+byline cluster gets
+              `break-inside-avoid` (so a headline is never orphaned alone
+              at the very bottom of a column with none of its own body
+              beneath it). The body paragraph itself is left free to break
+              across a column boundary. A whole block here (header + ~110
+              words of body) can run 250–350px tall, easily more than one
+              "slice" of a short column — marking the *entire* block
+              unbreakable would force the browser to defer the whole thing
+              to the next column whenever it didn't quite fit the space
+              left in the current one, leaving exactly the kind of blank
+              band at the bottom of a column this is meant to prevent.
+              Letting body text break, the way body copy always does at
+              the bottom of a real newspaper column, fills every column
+              right up to its edge with no exceptions. */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 overflow-hidden p-[clamp(12px,1.56vw,32px)]"
           >
             <div
-              className="grid h-full w-full auto-rows-min grid-cols-3 gap-x-[clamp(8px,0.78vw,16px)] gap-y-[clamp(8px,0.78vw,16px)] [grid-auto-flow:dense] sm:grid-cols-6 lg:grid-cols-9"
+              className="h-full w-full columns-3 gap-x-[clamp(8px,0.78vw,16px)] sm:columns-6 lg:columns-9 [column-fill:auto]"
             >
               {blocks.map((block, i) => {
-                // Only the HEADLINE spans the story's full column width, the
-                // way a real front-page headline banners over its columns.
-                // The body text underneath stays column-width — laid out as
-                // a hand-split two-column grid for the dominant story (see
-                // `splitInHalf`), rather than stretched into one wide
-                // paragraph, or a 2-column-wide "story" just reads as an
-                // oversized single column of text, not an actual newspaper
-                // spread.
                 const isFeature = block.type === "feature";
-                const headlineSpanClass = isFeature
-                  ? "col-span-2 lg:col-span-3"
-                  : "col-span-1";
                 const isFirstTextBlock = i === 0;
                 const dropCapClass = isFirstTextBlock
                   ? "first-letter:float-left first-letter:mr-1 first-letter:font-display first-letter:text-[clamp(20px,1.67vw,26px)] first-letter:font-bold first-letter:leading-[0.8] first-letter:text-muted/45"
@@ -292,7 +286,10 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
                   // text, not a dominant block that outweighs everything
                   // around it.
                   return (
-                    <div key={i} className="col-span-1 mb-2.5">
+                    <div
+                      key={i}
+                      className="mb-2.5 break-inside-avoid"
+                    >
                       <p className={`${kickerClass} mb-0.5 text-center`}>
                         {block.kicker}
                       </p>
@@ -308,35 +305,24 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
                 }
 
                 return (
-                  <div key={i} className={`${headlineSpanClass} mb-2.5`}>
-                    <p className={`${kickerClass} mb-0.5`}>{block.kicker}</p>
-                    <p
-                      className={
-                        isFeature
-                          ? "mb-0.5 font-display text-[clamp(11px,0.91vw,18px)] font-bold uppercase leading-tight tracking-tight text-muted/45"
-                          : "mb-0.5 font-display text-[clamp(8px,0.59vw,12px)] font-semibold uppercase leading-tight tracking-tight text-muted/35"
-                      }
-                    >
-                      {block.headline}
-                    </p>
-                    <p className={bylineClass}>{block.byline}</p>
-                    <div className="mb-1 h-px w-6 bg-line" />
-                    {isFeature && block.bodyColumns ? (
-                      <div className="grid grid-cols-2 gap-x-[clamp(8px,0.7vw,14px)]">
-                        <p
-                          className={`${bodyTextClass} border-r border-line pr-[clamp(4px,0.4vw,8px)] ${dropCapClass}`}
-                        >
-                          {block.bodyColumns[0]}
-                        </p>
-                        <p className={`${bodyTextClass} pl-[clamp(4px,0.4vw,8px)]`}>
-                          {block.bodyColumns[1]}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className={`${bodyTextClass} ${dropCapClass}`}>
-                        {block.body}
+                  <div key={i} className="mb-2.5">
+                    <div className="break-inside-avoid">
+                      <p className={`${kickerClass} mb-0.5`}>{block.kicker}</p>
+                      <p
+                        className={
+                          isFeature
+                            ? "mb-0.5 font-display text-[clamp(11px,0.91vw,18px)] font-bold uppercase leading-tight tracking-tight text-muted/45"
+                            : "mb-0.5 font-display text-[clamp(8px,0.59vw,12px)] font-semibold uppercase leading-tight tracking-tight text-muted/35"
+                        }
+                      >
+                        {block.headline}
                       </p>
-                    )}
+                      <p className={bylineClass}>{block.byline}</p>
+                      <div className="mb-1 h-px w-6 bg-line" />
+                    </div>
+                    <p className={`${bodyTextClass} ${dropCapClass}`}>
+                      {block.body}
+                    </p>
                   </div>
                 );
               })}
