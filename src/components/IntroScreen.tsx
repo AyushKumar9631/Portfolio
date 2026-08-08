@@ -357,7 +357,16 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
                   onMouseEnter={trigger}
                   onFocus={trigger}
                   onClick={trigger}
-                  className="group corner-brackets pointer-events-auto relative inline-block border border-dashed border-line-strong bg-bg px-4 py-2.5 outline-none sm:cursor-none"
+                  // Boosted from the original hairline `border-line-strong`
+                  // (only 28% opacity — nearly invisible against a dense
+                  // page of similarly grey filler text) to a heavier,
+                  // higher-contrast dashed rule in the same accent-2 brown
+                  // already used for the "Wanted" kicker and corner-brackets,
+                  // plus the slightly darker `bg-elevated` tone instead of
+                  // the page's own background — so the box now reads as a
+                  // distinct cut-out ad instead of blending into the column.
+                  // Text size/weight intentionally left untouched.
+                  className="group corner-brackets pointer-events-auto relative inline-block border-[1.5px] border-dashed border-accent-2/60 bg-bg-elevated px-4 py-2.5 shadow-sm outline-none transition-colors hover:border-accent-2 sm:cursor-none"
                 >
                   <span className="block text-center font-mono text-[clamp(11px,0.78vw,16px)] font-medium tracking-widest text-accent-2">
                     Wanted
