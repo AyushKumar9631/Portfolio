@@ -28,12 +28,37 @@ const WORDS_PER_PX2 = 0.0026;
 const MIN_REPEAT = 6;
 const MAX_REPEAT = 50;
 
+// Words per faux "article" block within the column flow. Kept short so
+// several headline+body blocks stack per column, like a real page.
+const WORDS_PER_ARTICLE = 110;
+
+type Article = { headline: string; body: string };
+
 function computeRepeat() {
   if (typeof window === "undefined") return 10; // generous default for first server paint
   const area = window.innerWidth * window.innerHeight;
   const wordsNeeded = area * WORDS_PER_PX2;
   const repeat = Math.ceil(wordsNeeded / commonWords.length);
   return Math.min(Math.max(repeat, MIN_REPEAT), MAX_REPEAT);
+}
+
+// Chops the (viewport-scaled) word supply into article-sized chunks, each
+// with its own short "headline" line pulled from partway through that
+// chunk's own words — cheap way to get varied-looking headlines without a
+// separate word source, since none of this text is meant to be read.
+function buildArticles(repeat: number): Article[] {
+  const words = Array(repeat).fill(commonWords).flat();
+  const articles: Article[] = [];
+  for (let i = 0; i < words.length; i += WORDS_PER_ARTICLE) {
+    const body = words.slice(i, i + WORDS_PER_ARTICLE);
+    if (body.length === 0) break;
+    const mid = Math.floor(body.length / 2);
+    articles.push({
+      headline: body.slice(mid, mid + 3).join(" "),
+      body: body.join(" "),
+    });
+  }
+  return articles;
 }
 
 export default function IntroScreen({ onComplete }: IntroScreenProps) {
@@ -59,12 +84,10 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
   }, []);
 
   // Pure decorative filler now — the name is no longer spliced into this
-  // text by word index (see rationale below), so this is just one
-  // continuous block sized to whatever the current viewport needs.
-  const backgroundText = useMemo(
-    () => Array(repeat).fill(commonWords).flat().join(" "),
-    [repeat]
-  );
+  // text by word index (see rationale below). Structured into headline +
+  // body "articles" (rather than one flat blob) so the columns read as an
+  // actual page instead of a wall of grey text.
+  const articles = useMemo(() => buildArticles(repeat), [repeat]);
 
   function handleMouseMove(e: React.MouseEvent) {
     cursorX.set(e.clientX - 25);
@@ -103,13 +126,40 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
         >
           {/* Decorative texture only. Sized (via `repeat`) to always
               overflow the viewport so the columns never run dry and leave
-              a blank gap on large monitors. */}
+              a blank gap on large monitors. Structured as headline+body
+              "articles" with column rules and a lead drop cap, rather than
+              one flat blob, so it actually reads as a newspaper page. */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 overflow-hidden p-3 sm:p-6"
           >
-            <div className="h-full w-full columns-3 gap-3 text-justify text-[8px] leading-[1.5] text-muted/25 sm:columns-6 sm:text-[9px] lg:columns-9">
-              {backgroundText}
+            <div className="newsprint-columns h-full w-full columns-3 gap-3 sm:columns-6 lg:columns-9">
+              {articles.map((article, i) => {
+                const isFeature = i % 6 === 0;
+                return (
+                  <div key={i} className="mb-2.5 break-inside-avoid">
+                    <p
+                      className={
+                        isFeature
+                          ? "mb-0.5 font-display text-[10px] font-bold uppercase leading-tight tracking-tight text-muted/45 sm:text-xs"
+                          : "mb-0.5 font-display text-[8px] font-semibold uppercase leading-tight tracking-tight text-muted/35 sm:text-[9px]"
+                      }
+                    >
+                      {article.headline}
+                    </p>
+                    <div className="mb-1 h-px w-6 bg-line" />
+                    <p
+                      className={`text-justify text-[8px] leading-[1.5] text-muted/25 sm:text-[9px] ${
+                        i === 0
+                          ? "first-letter:float-left first-letter:mr-1 first-letter:font-display first-letter:text-2xl first-letter:font-bold first-letter:leading-[0.8] first-letter:text-muted/45 sm:first-letter:text-3xl"
+                          : ""
+                      }`}
+                    >
+                      {article.body}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

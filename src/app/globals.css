@@ -44,6 +44,10 @@ body {
   background-size: 18px 18px;
 }
 
+.newsprint-columns {
+  column-rule: 1px solid var(--line);
+}
+
 .corner-brackets {
   position: relative;
 }
