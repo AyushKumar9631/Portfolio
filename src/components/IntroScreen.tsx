@@ -38,15 +38,52 @@ const WORDS_PER_ARTICLE = 110;
 // rest (see e.g. Andy Clarke's "Transcending CSS" ch.10 on broadsheet
 // grids). This repeating 5-block rhythm mimics that — one dominant
 // (2-col) story, a photo module, and regular 1-col stories between —
-// tiled down the page instead of one flat column of text.
+// tiled down the page instead of one flat column of text. Each story
+// also carries a kicker (the small section label above a headline) and a
+// byline, the way real front-page copy always identifies its section and
+// author rather than just running headline-into-body.
 type BlockType = "feature" | "regular" | "image";
 
 type Block = {
   type: BlockType;
+  kicker: string;
   headline: string;
+  byline: string;
   body: string;
+  // Hand-split halves for the dominant "feature" story's two-column body.
+  // Deliberately NOT CSS `columns-2` — that lets the browser's column-
+  // balance algorithm decide the split, and when a grid parent stretches
+  // the item's height, the algorithm can leave the second column mostly
+  // (or entirely) blank. Splitting the word list ourselves guarantees
+  // both columns are populated every time.
+  bodyColumns?: [string, string];
   caption?: string;
 };
+
+const KICKERS = [
+  "WORLD",
+  "MARKETS",
+  "TECHNOLOGY",
+  "OPINION",
+  "CULTURE",
+  "SCIENCE",
+  "POLITICS",
+  "SPORT",
+  "BUSINESS",
+  "REGIONAL",
+];
+
+function capitalize(word: string) {
+  return word ? word.charAt(0).toUpperCase() + word.slice(1) : word;
+}
+
+// Deterministic 50/50 split (ceil so an odd word out goes to column one,
+// same as a real typeset column) — no browser balancing involved, so
+// there's no way for one side to come up short.
+function splitInHalf(words: string[]): [string, string] {
+  const mid = Math.ceil(words.length / 2);
+  return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
+}
 
 function computeRepeat() {
   if (typeof window === "undefined") return 10; // generous default for first server paint
@@ -59,11 +96,14 @@ function computeRepeat() {
 // Chops the (viewport-scaled) word supply into block-sized chunks, each
 // with its own short "headline" line pulled from partway through that
 // chunk's own words — cheap way to get varied-looking headlines without a
-// separate word source, since none of this text is meant to be read.
-// Every 5th block becomes a dominant "feature" (2-column headline+body)
-// and the block after it becomes an "image" module (placeholder graphic
-// + one-line cutline instead of body copy) — a fixed rhythm rather than
-// random, so the page reads as deliberately edited rather than noisy.
+// separate word source, since none of this text is meant to be read. A
+// rotating kicker and a two-word "byline" (also lifted from the chunk's
+// own words, capitalized) are layered on the same way, purely for
+// newspaper texture. Every 5th block becomes a dominant "feature"
+// (hand-split two-column headline+body) and the block after it becomes
+// an "image" module (placeholder graphic + one-line cutline instead of
+// body copy) — a fixed rhythm rather than random, so the page reads as
+// deliberately edited rather than noisy.
 function buildBlocks(repeat: number): Block[] {
   const words = Array(repeat).fill(commonWords).flat();
   const blocks: Block[] = [];
@@ -75,19 +115,34 @@ function buildBlocks(repeat: number): Block[] {
     i += WORDS_PER_ARTICLE;
     const mid = Math.floor(body.length / 2);
     const headline = body.slice(mid, mid + 3).join(" ");
+    const byline = `By ${capitalize(body[0])} ${capitalize(body[1] ?? body[0])}`;
+    const kicker = KICKERS[index % KICKERS.length];
     const cycle = index % 5;
     index += 1;
     if (cycle === 3) {
       blocks.push({
         type: "image",
+        kicker,
         headline,
+        byline,
         body: body.join(" "),
         caption: body.slice(0, 4).join(" "),
       });
+    } else if (cycle === 0) {
+      blocks.push({
+        type: "feature",
+        kicker,
+        headline,
+        byline,
+        body: body.join(" "),
+        bodyColumns: splitInHalf(body),
+      });
     } else {
       blocks.push({
-        type: cycle === 0 ? "feature" : "regular",
+        type: "regular",
+        kicker,
         headline,
+        byline,
         body: body.join(" "),
       });
     }
@@ -191,24 +246,44 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               ones instead of leaving holes. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 overflow-hidden p-3 sm:p-6"
+            className="pointer-events-none absolute inset-0 overflow-hidden p-[clamp(12px,1.56vw,32px)]"
           >
             <div
-              className="grid h-full w-full auto-rows-min grid-cols-3 gap-x-3 gap-y-3 [grid-auto-flow:dense] sm:grid-cols-6 lg:grid-cols-9"
+              className="grid h-full w-full auto-rows-min grid-cols-3 gap-x-[clamp(8px,0.78vw,16px)] gap-y-[clamp(8px,0.78vw,16px)] [grid-auto-flow:dense] sm:grid-cols-6 lg:grid-cols-9"
             >
               {blocks.map((block, i) => {
                 // Only the HEADLINE spans the story's full column width, the
                 // way a real front-page headline banners over its columns.
                 // The body text underneath stays column-width — laid out as
-                // its own mini multi-column flow (`columns-2`) rather than
-                // stretched into one wide paragraph, or a 2-column-wide
-                // "story" just reads as an oversized single column of text,
-                // not an actual newspaper spread.
+                // a hand-split two-column grid for the dominant story (see
+                // `splitInHalf`), rather than stretched into one wide
+                // paragraph, or a 2-column-wide "story" just reads as an
+                // oversized single column of text, not an actual newspaper
+                // spread.
                 const isFeature = block.type === "feature";
                 const headlineSpanClass = isFeature
                   ? "col-span-2 lg:col-span-3"
                   : "col-span-1";
                 const isFirstTextBlock = i === 0;
+                const dropCapClass = isFirstTextBlock
+                  ? "first-letter:float-left first-letter:mr-1 first-letter:font-display first-letter:text-[clamp(20px,1.67vw,26px)] first-letter:font-bold first-letter:leading-[0.8] first-letter:text-muted/45"
+                  : "";
+
+                // All font sizes and the image module's box width below use
+                // `clamp(min, Nvw, max)` rather than a fixed px value or a
+                // sm:/lg: breakpoint pair — the preferred (middle) term is
+                // tuned so the computed size lands on the old "desktop"
+                // value at a 1536px-wide viewport (a standard 15.6" laptop's
+                // logical resolution), while the min/max bounds keep it
+                // sane on phones and ultrawide monitors. Hairline rules and
+                // dividers are left in px on purpose: a real column rule
+                // doesn't get thicker on a bigger screen.
+                const kickerClass =
+                  "font-mono text-[clamp(7px,0.52vw,10px)] font-semibold uppercase tracking-widest text-accent-2/50";
+                const bylineClass =
+                  "mb-1 font-body text-[clamp(7px,0.52vw,10px)] italic text-muted/35";
+                const bodyTextClass =
+                  "text-justify text-[clamp(8px,0.59vw,12px)] leading-[1.5] text-muted/25";
 
                 if (block.type === "image") {
                   // Deliberately kept to a single narrow column and capped
@@ -218,11 +293,14 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
                   // around it.
                   return (
                     <div key={i} className="col-span-1 mb-2.5">
-                      <div className="mx-auto flex aspect-[4/3] max-w-[72px] items-center justify-center border border-dashed border-line-strong bg-bg-elevated/40 p-1.5 text-muted/30 sm:max-w-[92px]">
+                      <p className={`${kickerClass} mb-0.5 text-center`}>
+                        {block.kicker}
+                      </p>
+                      <div className="mx-auto flex aspect-[4/3] max-w-[clamp(72px,6vw,120px)] items-center justify-center border border-dashed border-line-strong bg-bg-elevated/40 p-1.5 text-muted/30">
                         <ImagePlaceholderIcon />
                       </div>
-                      <div className="mx-auto mt-1 h-px w-full max-w-[72px] bg-line sm:max-w-[92px]" />
-                      <p className="mx-auto mt-1 max-w-[72px] text-center text-[6px] italic leading-tight text-muted/30 sm:max-w-[92px] sm:text-[7px]">
+                      <div className="mx-auto mt-1 h-px w-full max-w-[clamp(72px,6vw,120px)] bg-line" />
+                      <p className="mx-auto mt-1 max-w-[clamp(72px,6vw,120px)] text-center text-[clamp(6px,0.46vw,9px)] italic leading-tight text-muted/30">
                         {block.caption}
                       </p>
                     </div>
@@ -231,33 +309,34 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
 
                 return (
                   <div key={i} className={`${headlineSpanClass} mb-2.5`}>
+                    <p className={`${kickerClass} mb-0.5`}>{block.kicker}</p>
                     <p
                       className={
                         isFeature
-                          ? "mb-0.5 font-display text-[11px] font-bold uppercase leading-tight tracking-tight text-muted/45 sm:text-sm"
-                          : "mb-0.5 font-display text-[8px] font-semibold uppercase leading-tight tracking-tight text-muted/35 sm:text-[9px]"
+                          ? "mb-0.5 font-display text-[clamp(11px,0.91vw,18px)] font-bold uppercase leading-tight tracking-tight text-muted/45"
+                          : "mb-0.5 font-display text-[clamp(8px,0.59vw,12px)] font-semibold uppercase leading-tight tracking-tight text-muted/35"
                       }
                     >
                       {block.headline}
                     </p>
+                    <p className={bylineClass}>{block.byline}</p>
                     <div className="mb-1 h-px w-6 bg-line" />
-                    <div
-                      className={
-                        isFeature
-                          ? "columns-2 gap-x-3 [column-rule:1px_solid_var(--line)]"
-                          : undefined
-                      }
-                    >
-                      <p
-                        className={`text-justify text-[8px] leading-[1.5] text-muted/25 sm:text-[9px] ${
-                          isFirstTextBlock
-                            ? "first-letter:float-left first-letter:mr-1 first-letter:font-display first-letter:text-2xl first-letter:font-bold first-letter:leading-[0.8] first-letter:text-muted/45 sm:first-letter:text-3xl"
-                            : ""
-                        }`}
-                      >
+                    {isFeature && block.bodyColumns ? (
+                      <div className="grid grid-cols-2 gap-x-[clamp(8px,0.7vw,14px)]">
+                        <p
+                          className={`${bodyTextClass} border-r border-line pr-[clamp(4px,0.4vw,8px)] ${dropCapClass}`}
+                        >
+                          {block.bodyColumns[0]}
+                        </p>
+                        <p className={`${bodyTextClass} pl-[clamp(4px,0.4vw,8px)]`}>
+                          {block.bodyColumns[1]}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className={`${bodyTextClass} ${dropCapClass}`}>
                         {block.body}
                       </p>
-                    </div>
+                    )}
                   </div>
                 );
               })}
@@ -282,10 +361,10 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               onClick={trigger}
               className="group corner-brackets pointer-events-auto relative border border-dashed border-line-strong bg-bg px-4 py-2.5 outline-none sm:cursor-none"
             >
-              <span className="block text-center font-mono text-[11px] font-medium tracking-widest text-accent-2 sm:text-xs">
+              <span className="block text-center font-mono text-[clamp(11px,0.78vw,16px)] font-medium tracking-widest text-accent-2">
                 Wanted
               </span>
-              <span className="block text-center font-display text-sm font-bold text-ink sm:text-base">
+              <span className="block text-center font-display text-[clamp(14px,1.04vw,21px)] font-bold text-ink">
                 {profile.name}
               </span>
               <AnimatePresence>
@@ -319,7 +398,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
           <button
             type="button"
             onClick={skip}
-            className="absolute right-6 top-6 border border-line-strong bg-bg px-3 py-1.5 font-mono text-[10px] tracking-widest text-muted transition-colors hover:border-accent hover:text-ink sm:cursor-none"
+            className="absolute right-6 top-6 border border-line-strong bg-bg px-3 py-1.5 font-mono text-[clamp(10px,0.65vw,13px)] tracking-widest text-muted transition-colors hover:border-accent hover:text-ink sm:cursor-none"
           >
             SKIP INTRO
           </button>
@@ -327,7 +406,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
           <motion.p
             animate={{ y: [0, -6, 0] }}
             transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-bg px-3 font-mono text-xs tracking-widest text-muted"
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-bg px-3 font-mono text-[clamp(12px,0.78vw,16px)] tracking-widest text-muted"
           >
             trace the wanted name to enter
           </motion.p>
