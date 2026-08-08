@@ -334,25 +334,31 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               above — its location no longer depends on word count or
               column math, so it lands in the same reliable place on
               every screen size instead of drifting off-screen.
-              Styled as a boxed classified notice (dashed cut-line +
-              corner crop-marks) rather than blended into the body text —
-              real newspapers box out ads and notices like this, so it
-              reads as part of the page rather than a floating UI element
-              even though it's visually distinct from the grey filler. */}
+              Styled with the SAME kicker/headline/byline/divider grammar
+              as every other block above (see the `blocks.map` render),
+              just scaled far past any of them — so it reads as the
+              front page's lead story sitting at the visual center of
+              the page, not a decorative UI chip floating over it. No
+              card background or box border: it sits directly in the
+              newsprint texture the way a real banner headline would. */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
             <button
               type="button"
               onMouseEnter={trigger}
               onFocus={trigger}
               onClick={trigger}
-              className="group corner-brackets pointer-events-auto relative border border-dashed border-line-strong bg-bg px-4 py-2.5 outline-none sm:cursor-none"
+              className="group pointer-events-auto relative flex flex-col items-center px-4 py-2 text-center outline-none sm:cursor-none"
             >
-              <span className="block text-center font-mono text-[clamp(11px,0.78vw,16px)] font-medium tracking-widest text-accent-2">
+              <span className="mb-1.5 block font-mono text-[clamp(10px,0.85vw,16px)] font-semibold uppercase tracking-[0.35em] text-accent-2 transition-colors group-hover:text-accent">
                 Wanted
               </span>
-              <span className="block text-center font-display text-[clamp(14px,1.04vw,21px)] font-bold text-ink">
+              <span className="block font-display text-[clamp(30px,3.4vw,76px)] font-bold uppercase leading-[1.05] tracking-tight text-ink">
                 {profile.name}
               </span>
+              <span className="mt-1.5 block font-body text-[clamp(12px,0.98vw,18px)] italic text-muted">
+                {profile.role}
+              </span>
+              <span className="mt-2.5 block h-px w-16 bg-line-strong transition-colors duration-300 group-hover:w-24 group-hover:bg-accent sm:w-24" />
               <AnimatePresence>
 
                 {revealing && (
@@ -360,7 +366,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
                     key="stamp"
                     viewBox="0 0 100 50"
                     preserveAspectRatio="none"
-                    className="pointer-events-none absolute -inset-x-3 -inset-y-2 sm:-inset-x-4 sm:-inset-y-2"
+                    className="pointer-events-none absolute -inset-x-8 -inset-y-5 sm:-inset-x-14 sm:-inset-y-8"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.15 }}
