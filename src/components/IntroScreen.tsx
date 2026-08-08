@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   AnimatePresence,
   motion,
@@ -181,15 +188,10 @@ const BODY_TEXT_CLASS =
 // One filler block — extracted to its own component so it can be
 // rendered in two separate passes (before/after the Wanted ad) without
 // duplicating this markup.
-function FillerBlock({
-  block,
-  i,
-  ariaHidden,
-}: {
-  block: Block;
-  i: number;
-  ariaHidden?: boolean;
-}) {
+const FillerBlock = forwardRef<
+  HTMLDivElement,
+  { block: Block; i: number; ariaHidden?: boolean }
+>(function FillerBlock({ block, i, ariaHidden }, ref) {
   const isFeature = block.type === "feature";
   const isFirstTextBlock = i === 0;
   const dropCapClass = isFirstTextBlock
@@ -202,7 +204,11 @@ function FillerBlock({
     // as a small inset graphic among the text, not a dominant block
     // that outweighs everything around it.
     return (
-      <div className="mb-2.5 break-inside-avoid" aria-hidden={ariaHidden}>
+      <div
+        ref={ref}
+        className="mb-2.5 break-inside-avoid"
+        aria-hidden={ariaHidden}
+      >
         <p className={`${KICKER_CLASS} mb-0.5 text-center`}>{block.kicker}</p>
         <div className="mx-auto flex aspect-[4/3] max-w-[clamp(72px,6vw,120px)] items-center justify-center border border-dashed border-line-strong bg-bg-elevated/40 p-1.5 text-muted/30">
           <ImagePlaceholderIcon />
@@ -216,7 +222,7 @@ function FillerBlock({
   }
 
   return (
-    <div className="mb-2.5" aria-hidden={ariaHidden}>
+    <div ref={ref} className="mb-2.5" aria-hidden={ariaHidden}>
       <div className="break-inside-avoid">
         <p className={`${KICKER_CLASS} mb-0.5`}>{block.kicker}</p>
         <p
@@ -234,7 +240,7 @@ function FillerBlock({
       <p className={`${BODY_TEXT_CLASS} ${dropCapClass}`}>{block.body}</p>
     </div>
   );
-}
+});
 
 export default function IntroScreen({ onComplete }: IntroScreenProps) {
   const [visible, setVisible] = useState(true);
@@ -267,16 +273,69 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
   // above `BlockType`).
   const blocks = useMemo(() => buildBlocks(repeat), [repeat]);
 
-  // Splits the filler blocks into a "before" and "after" group so the
-  // Wanted ad can be inserted between them as a real flow child of the
-  // same multi-column container — not a second absolutely-positioned
-  // layer stacked on top of it. Roughly half the filler content lands
-  // before it and half after, in both DOM order and column-flow order,
-  // which keeps it landing close to the middle of the total column
-  // spread on every column count (3 / 6 / 9) without ever overlapping
-  // or hiding the surrounding text — the columns simply flow around it
-  // the way text flows around any other block in the page.
-  const midIndex = Math.max(1, Math.floor(blocks.length / 2));
+  // --- Why the split index is measured, not a fixed fraction ---
+  // An earlier version used `blocks.length / 2` directly. That looked
+  // reasonable but was wrong: `blocks` is deliberately OVER-generated
+  // (see WORDS_PER_PX2 above) so the columns never run dry at the
+  // bottom, and that overflow is intentionally uncapped — it grows with
+  // viewport area while the column *count* caps out at 9 (`lg:columns-9`)
+  // for anything wide. So "50% of the array" routinely lands well past
+  // however many blocks actually fit in the visible 9-column area, and
+  // CSS multi-column doesn't drop that overflow — it just keeps adding
+  // column tracks off the right edge, which `overflow-hidden` on the
+  // ancestor then clips. Net effect: the ad silently rendered off-screen
+  // on ordinary viewports, not just huge ones. There's no reliable
+  // constant to swap in either, since the true "blocks per column" count
+  // depends on real font metrics that vary by browser/OS/zoom — exactly
+  // the kind of thing that has to be measured, not guessed.
+  //
+  // So: render with a conservative placeholder index first (guaranteed
+  // to be near the top, i.e. always on-screen), then — after the browser
+  // has actually laid the columns out — measure one real rendered block's
+  // height plus the column container's real height, derive how many
+  // blocks truly fit across the visible columns, and re-render with the
+  // ad at the midpoint of THAT number instead. useLayoutEffect runs and
+  // commits before the browser paints, so this correction happens before
+  // the user ever sees the placeholder position.
+  const PLACEHOLDER_FRACTION = 0.25;
+  const [midIndex, setMidIndex] = useState(() =>
+    Math.max(1, Math.floor(blocks.length * PLACEHOLDER_FRACTION)),
+  );
+  const safeMidIndex = Math.min(Math.max(1, midIndex), Math.max(1, blocks.length - 1));
+
+  const columnsRef = useRef<HTMLDivElement>(null);
+  const sampleBlockRef = useRef<HTMLDivElement>(null);
+  // Sample a "regular" block specifically (not the always-larger "feature"
+  // block at index 0, and not the differently-shaped "image" block) so the
+  // measured height is representative of the majority of blocks.
+  const sampleBlockIndex = useMemo(() => {
+    const idx = blocks.findIndex((b) => b.type === "regular");
+    return idx === -1 ? 0 : idx;
+  }, [blocks]);
+
+  useLayoutEffect(() => {
+    const container = columnsRef.current;
+    const sample = sampleBlockRef.current;
+    if (!container || !sample) return;
+    const containerHeight = container.clientHeight;
+    const sampleStyle = window.getComputedStyle(sample);
+    const sampleHeight =
+      sample.getBoundingClientRect().height +
+      (parseFloat(sampleStyle.marginBottom) || 0);
+    const columnCount =
+      parseInt(window.getComputedStyle(container).columnCount, 10) || 3;
+    if (containerHeight <= 0 || sampleHeight <= 0) return;
+    const blocksPerColumn = Math.max(1, Math.floor(containerHeight / sampleHeight));
+    const visibleCapacity = blocksPerColumn * columnCount;
+    const target = Math.max(
+      1,
+      Math.min(blocks.length - 1, Math.floor(visibleCapacity / 2)),
+    );
+    setMidIndex(target);
+    // Re-measure whenever `blocks` changes identity (the resize listener
+    // above regenerates it), so the ad stays correctly placed after a
+    // resize/breakpoint change too, not just on first mount.
+  }, [blocks]);
 
   function handleMouseMove(e: React.MouseEvent) {
     cursorX.set(e.clientX - 25);
@@ -336,13 +395,25 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               the bottom of a real newspaper column, fills every column
               right up to its edge with no exceptions. */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden p-[clamp(12px,1.56vw,32px)]">
-            <div className="h-full w-full columns-3 gap-x-[clamp(8px,0.78vw,16px)] sm:columns-6 lg:columns-9 [column-fill:auto]">
+            <div
+              ref={columnsRef}
+              className="h-full w-full columns-3 gap-x-[clamp(8px,0.78vw,16px)] sm:columns-6 lg:columns-9 [column-fill:auto]"
+            >
               {/* Decorative filler, part one. aria-hidden is applied per
                   block (not via a wrapping div — a nested container breaks
                   CSS multi-column fragmentation, see note above `columns-N`
-                  usage) since none of this text is meant to be read. */}
-              {blocks.slice(0, midIndex).map((block, i) => (
-                <FillerBlock key={i} block={block} i={i} ariaHidden />
+                  usage) since none of this text is meant to be read. One
+                  block also carries sampleBlockRef so its real rendered
+                  height can be measured (see the split-index rationale
+                  above). */}
+              {blocks.slice(0, safeMidIndex).map((block, i) => (
+                <FillerBlock
+                  key={i}
+                  block={block}
+                  i={i}
+                  ariaHidden
+                  ref={i === sampleBlockIndex ? sampleBlockRef : undefined}
+                />
               ))}
 
               {/* The Wanted ad itself: a genuine flow child of the SAME
@@ -410,14 +481,22 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               </div>
 
               {/* Decorative filler, part two. */}
-              {blocks.slice(midIndex).map((block, i) => (
-                <FillerBlock
-                  key={midIndex + i}
-                  block={block}
-                  i={midIndex + i}
-                  ariaHidden
-                />
-              ))}
+              {blocks.slice(safeMidIndex).map((block, i) => {
+                const globalIndex = safeMidIndex + i;
+                return (
+                  <FillerBlock
+                    key={globalIndex}
+                    block={block}
+                    i={globalIndex}
+                    ariaHidden
+                    ref={
+                      globalIndex === sampleBlockIndex
+                        ? sampleBlockRef
+                        : undefined
+                    }
+                  />
+                );
+              })}
             </div>
           </div>
 
