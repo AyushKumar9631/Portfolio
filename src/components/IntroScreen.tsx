@@ -161,6 +161,73 @@ function ImagePlaceholderIcon() {
   );
 }
 
+// All font sizes and the image module's box width below use
+// `clamp(min, Nvw, max)` rather than a fixed px value or a sm:/lg:
+// breakpoint pair — the preferred (middle) term is tuned so the computed
+// size lands on the old "desktop" value at a 1536px-wide viewport (a
+// standard 15.6" laptop's logical resolution), while the min/max bounds
+// keep it sane on phones and ultrawide monitors. Hairline rules and
+// dividers are left in px on purpose: a real column rule doesn't get
+// thicker on a bigger screen. Hoisted to module scope (rather than
+// recomputed inside the block map callback) since the Wanted ad block
+// now splits the filler render into two passes and both need them.
+const KICKER_CLASS =
+  "font-mono text-[clamp(7px,0.52vw,10px)] font-semibold uppercase tracking-widest text-accent-2/50";
+const BYLINE_CLASS =
+  "mb-1 font-body text-[clamp(7px,0.52vw,10px)] italic text-muted/35";
+const BODY_TEXT_CLASS =
+  "text-justify text-[clamp(8px,0.59vw,12px)] leading-[1.5] text-muted/25";
+
+// One filler block — extracted to its own component so it can be
+// rendered in two separate passes (before/after the Wanted ad) without
+// duplicating this markup.
+function FillerBlock({ block, i }: { block: Block; i: number }) {
+  const isFeature = block.type === "feature";
+  const isFirstTextBlock = i === 0;
+  const dropCapClass = isFirstTextBlock
+    ? "first-letter:float-left first-letter:mr-1 first-letter:font-display first-letter:text-[clamp(20px,1.67vw,26px)] first-letter:font-bold first-letter:leading-[0.8] first-letter:text-muted/45"
+    : "";
+
+  if (block.type === "image") {
+    // Deliberately kept to a single narrow column and capped with an
+    // explicit max-width — a photo module in this texture should read
+    // as a small inset graphic among the text, not a dominant block
+    // that outweighs everything around it.
+    return (
+      <div className="mb-2.5 break-inside-avoid">
+        <p className={`${KICKER_CLASS} mb-0.5 text-center`}>{block.kicker}</p>
+        <div className="mx-auto flex aspect-[4/3] max-w-[clamp(72px,6vw,120px)] items-center justify-center border border-dashed border-line-strong bg-bg-elevated/40 p-1.5 text-muted/30">
+          <ImagePlaceholderIcon />
+        </div>
+        <div className="mx-auto mt-1 h-px w-full max-w-[clamp(72px,6vw,120px)] bg-line" />
+        <p className="mx-auto mt-1 max-w-[clamp(72px,6vw,120px)] text-center text-[clamp(6px,0.46vw,9px)] italic leading-tight text-muted/30">
+          {block.caption}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-2.5">
+      <div className="break-inside-avoid">
+        <p className={`${KICKER_CLASS} mb-0.5`}>{block.kicker}</p>
+        <p
+          className={
+            isFeature
+              ? "mb-0.5 font-display text-[clamp(11px,0.91vw,18px)] font-bold uppercase leading-tight tracking-tight text-muted/45"
+              : "mb-0.5 font-display text-[clamp(8px,0.59vw,12px)] font-semibold uppercase leading-tight tracking-tight text-muted/35"
+          }
+        >
+          {block.headline}
+        </p>
+        <p className={BYLINE_CLASS}>{block.byline}</p>
+        <div className="mb-1 h-px w-6 bg-line" />
+      </div>
+      <p className={`${BODY_TEXT_CLASS} ${dropCapClass}`}>{block.body}</p>
+    </div>
+  );
+}
+
 export default function IntroScreen({ onComplete }: IntroScreenProps) {
   const [visible, setVisible] = useState(true);
   const [revealing, setRevealing] = useState(false);
@@ -191,6 +258,17 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
   // a blank hole partway down a column (see the multi-column rationale
   // above `BlockType`).
   const blocks = useMemo(() => buildBlocks(repeat), [repeat]);
+
+  // Splits the filler blocks into a "before" and "after" group so the
+  // Wanted ad can be inserted between them as a real flow child of the
+  // same multi-column container — not a second absolutely-positioned
+  // layer stacked on top of it. Roughly half the filler content lands
+  // before it and half after, in both DOM order and column-flow order,
+  // which keeps it landing close to the middle of the total column
+  // spread on every column count (3 / 6 / 9) without ever overlapping
+  // or hiding the surrounding text — the columns simply flow around it
+  // the way text flows around any other block in the page.
+  const midIndex = Math.max(1, Math.floor(blocks.length / 2));
 
   function handleMouseMove(e: React.MouseEvent) {
     cursorX.set(e.clientX - 25);
@@ -249,142 +327,78 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               Letting body text break, the way body copy always does at
               the bottom of a real newspaper column, fills every column
               right up to its edge with no exceptions. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 overflow-hidden p-[clamp(12px,1.56vw,32px)]"
-          >
-            <div
-              className="h-full w-full columns-3 gap-x-[clamp(8px,0.78vw,16px)] sm:columns-6 lg:columns-9 [column-fill:auto]"
-            >
-              {blocks.map((block, i) => {
-                const isFeature = block.type === "feature";
-                const isFirstTextBlock = i === 0;
-                const dropCapClass = isFirstTextBlock
-                  ? "first-letter:float-left first-letter:mr-1 first-letter:font-display first-letter:text-[clamp(20px,1.67vw,26px)] first-letter:font-bold first-letter:leading-[0.8] first-letter:text-muted/45"
-                  : "";
+          <div className="pointer-events-none absolute inset-0 overflow-hidden p-[clamp(12px,1.56vw,32px)]">
+            <div className="h-full w-full columns-3 gap-x-[clamp(8px,0.78vw,16px)] sm:columns-6 lg:columns-9 [column-fill:auto]">
+              {/* Decorative filler, part one — hidden from assistive tech
+                  since none of this text is meant to be read. */}
+              <div aria-hidden>
+                {blocks.slice(0, midIndex).map((block, i) => (
+                  <FillerBlock key={i} block={block} i={i} />
+                ))}
+              </div>
 
-                // All font sizes and the image module's box width below use
-                // `clamp(min, Nvw, max)` rather than a fixed px value or a
-                // sm:/lg: breakpoint pair — the preferred (middle) term is
-                // tuned so the computed size lands on the old "desktop"
-                // value at a 1536px-wide viewport (a standard 15.6" laptop's
-                // logical resolution), while the min/max bounds keep it
-                // sane on phones and ultrawide monitors. Hairline rules and
-                // dividers are left in px on purpose: a real column rule
-                // doesn't get thicker on a bigger screen.
-                const kickerClass =
-                  "font-mono text-[clamp(7px,0.52vw,10px)] font-semibold uppercase tracking-widest text-accent-2/50";
-                const bylineClass =
-                  "mb-1 font-body text-[clamp(7px,0.52vw,10px)] italic text-muted/35";
-                const bodyTextClass =
-                  "text-justify text-[clamp(8px,0.59vw,12px)] leading-[1.5] text-muted/25";
-
-                if (block.type === "image") {
-                  // Deliberately kept to a single narrow column and capped
-                  // with an explicit max-width — a photo module in this
-                  // texture should read as a small inset graphic among the
-                  // text, not a dominant block that outweighs everything
-                  // around it.
-                  return (
-                    <div
-                      key={i}
-                      className="mb-2.5 break-inside-avoid"
-                    >
-                      <p className={`${kickerClass} mb-0.5 text-center`}>
-                        {block.kicker}
-                      </p>
-                      <div className="mx-auto flex aspect-[4/3] max-w-[clamp(72px,6vw,120px)] items-center justify-center border border-dashed border-line-strong bg-bg-elevated/40 p-1.5 text-muted/30">
-                        <ImagePlaceholderIcon />
-                      </div>
-                      <div className="mx-auto mt-1 h-px w-full max-w-[clamp(72px,6vw,120px)] bg-line" />
-                      <p className="mx-auto mt-1 max-w-[clamp(72px,6vw,120px)] text-center text-[clamp(6px,0.46vw,9px)] italic leading-tight text-muted/30">
-                        {block.caption}
-                      </p>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div key={i} className="mb-2.5">
-                    <div className="break-inside-avoid">
-                      <p className={`${kickerClass} mb-0.5`}>{block.kicker}</p>
-                      <p
-                        className={
-                          isFeature
-                            ? "mb-0.5 font-display text-[clamp(11px,0.91vw,18px)] font-bold uppercase leading-tight tracking-tight text-muted/45"
-                            : "mb-0.5 font-display text-[clamp(8px,0.59vw,12px)] font-semibold uppercase leading-tight tracking-tight text-muted/35"
-                        }
+              {/* The Wanted ad itself: a genuine flow child of the SAME
+                  multi-column container the filler text lives in, sitting
+                  between the two filler passes above/below — not a second
+                  absolutely-positioned layer stacked on top of the page.
+                  Because it occupies real space in the column flow, the
+                  surrounding grey text simply flows around it instead of
+                  being overlapped or hidden underneath it, the same way a
+                  classified ad box sits inside an actual newspaper column.
+                  Styled as a boxed notice (dashed cut-line + corner
+                  crop-marks) so it reads as an ad amid the columns rather
+                  than blending into the article text around it. Not
+                  aria-hidden: this is the real control that enters the
+                  site, so it must stay in the accessibility tree even
+                  though its filler siblings are hidden from it. */}
+              <div className="mb-2.5 break-inside-avoid text-center">
+                <button
+                  type="button"
+                  onMouseEnter={trigger}
+                  onFocus={trigger}
+                  onClick={trigger}
+                  className="group corner-brackets pointer-events-auto relative inline-block border border-dashed border-line-strong bg-bg px-4 py-2.5 outline-none sm:cursor-none"
+                >
+                  <span className="block text-center font-mono text-[clamp(11px,0.78vw,16px)] font-medium tracking-widest text-accent-2">
+                    Wanted
+                  </span>
+                  <span className="block text-center font-display text-[clamp(14px,1.04vw,21px)] font-bold text-ink">
+                    {profile.name}
+                  </span>
+                  <AnimatePresence>
+                    {revealing && (
+                      <motion.svg
+                        key="stamp"
+                        viewBox="0 0 100 50"
+                        preserveAspectRatio="none"
+                        className="pointer-events-none absolute -inset-x-3 -inset-y-2 sm:-inset-x-4 sm:-inset-y-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.15 }}
                       >
-                        {block.headline}
-                      </p>
-                      <p className={bylineClass}>{block.byline}</p>
-                      <div className="mb-1 h-px w-6 bg-line" />
-                    </div>
-                    <p className={`${bodyTextClass} ${dropCapClass}`}>
-                      {block.body}
-                    </p>
-                  </div>
-                );
-              })}
+                        <motion.path
+                          d="M6,25 C6,8 40,2 50,2 C62,2 94,10 94,25 C94,42 60,48 50,48 C38,48 6,40 6,25 Z"
+                          fill="none"
+                          stroke="var(--accent)"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 0.5, ease: "easeInOut" }}
+                        />
+                      </motion.svg>
+                    )}
+                  </AnimatePresence>
+                </button>
+              </div>
+
+              {/* Decorative filler, part two. */}
+              <div aria-hidden>
+                {blocks.slice(midIndex).map((block, i) => (
+                  <FillerBlock key={midIndex + i} block={block} i={midIndex + i} />
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* Interactive name target, anchored to a fixed spot in the
-              viewport rather than to a position inside the word flow
-              above — its location no longer depends on word count or
-              column math, so it lands in the same reliable place on
-              every screen size instead of drifting off-screen.
-              Styled with the SAME kicker/headline/byline/divider grammar
-              as every other block above (see the `blocks.map` render),
-              just scaled far past any of them — so it reads as the
-              front page's lead story sitting at the visual center of
-              the page, not a decorative UI chip floating over it. No
-              card background or box border: it sits directly in the
-              newsprint texture the way a real banner headline would. */}
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-            <button
-              type="button"
-              onMouseEnter={trigger}
-              onFocus={trigger}
-              onClick={trigger}
-              className="group pointer-events-auto relative flex flex-col items-center px-4 py-2 text-center outline-none sm:cursor-none"
-            >
-              <span className="mb-1.5 block font-mono text-[clamp(10px,0.85vw,16px)] font-semibold uppercase tracking-[0.35em] text-accent-2 transition-colors group-hover:text-accent">
-                Wanted
-              </span>
-              <span className="block font-display text-[clamp(30px,3.4vw,76px)] font-bold uppercase leading-[1.05] tracking-tight text-ink">
-                {profile.name}
-              </span>
-              <span className="mt-1.5 block font-body text-[clamp(12px,0.98vw,18px)] italic text-muted">
-                {profile.role}
-              </span>
-              <span className="mt-2.5 block h-px w-16 bg-line-strong transition-colors duration-300 group-hover:w-24 group-hover:bg-accent sm:w-24" />
-              <AnimatePresence>
-
-                {revealing && (
-                  <motion.svg
-                    key="stamp"
-                    viewBox="0 0 100 50"
-                    preserveAspectRatio="none"
-                    className="pointer-events-none absolute -inset-x-8 -inset-y-5 sm:-inset-x-14 sm:-inset-y-8"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <motion.path
-                      d="M6,25 C6,8 40,2 50,2 C62,2 94,10 94,25 C94,42 60,48 50,48 C38,48 6,40 6,25 Z"
-                      fill="none"
-                      stroke="var(--accent)"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 0.5, ease: "easeInOut" }}
-                    />
-                  </motion.svg>
-                )}
-              </AnimatePresence>
-            </button>
           </div>
 
           <button
