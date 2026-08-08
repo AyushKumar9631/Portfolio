@@ -181,7 +181,15 @@ const BODY_TEXT_CLASS =
 // One filler block — extracted to its own component so it can be
 // rendered in two separate passes (before/after the Wanted ad) without
 // duplicating this markup.
-function FillerBlock({ block, i }: { block: Block; i: number }) {
+function FillerBlock({
+  block,
+  i,
+  ariaHidden,
+}: {
+  block: Block;
+  i: number;
+  ariaHidden?: boolean;
+}) {
   const isFeature = block.type === "feature";
   const isFirstTextBlock = i === 0;
   const dropCapClass = isFirstTextBlock
@@ -194,7 +202,7 @@ function FillerBlock({ block, i }: { block: Block; i: number }) {
     // as a small inset graphic among the text, not a dominant block
     // that outweighs everything around it.
     return (
-      <div className="mb-2.5 break-inside-avoid">
+      <div className="mb-2.5 break-inside-avoid" aria-hidden={ariaHidden}>
         <p className={`${KICKER_CLASS} mb-0.5 text-center`}>{block.kicker}</p>
         <div className="mx-auto flex aspect-[4/3] max-w-[clamp(72px,6vw,120px)] items-center justify-center border border-dashed border-line-strong bg-bg-elevated/40 p-1.5 text-muted/30">
           <ImagePlaceholderIcon />
@@ -208,7 +216,7 @@ function FillerBlock({ block, i }: { block: Block; i: number }) {
   }
 
   return (
-    <div className="mb-2.5">
+    <div className="mb-2.5" aria-hidden={ariaHidden}>
       <div className="break-inside-avoid">
         <p className={`${KICKER_CLASS} mb-0.5`}>{block.kicker}</p>
         <p
@@ -329,13 +337,13 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               right up to its edge with no exceptions. */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden p-[clamp(12px,1.56vw,32px)]">
             <div className="h-full w-full columns-3 gap-x-[clamp(8px,0.78vw,16px)] sm:columns-6 lg:columns-9 [column-fill:auto]">
-              {/* Decorative filler, part one — hidden from assistive tech
-                  since none of this text is meant to be read. */}
-              <div aria-hidden>
-                {blocks.slice(0, midIndex).map((block, i) => (
-                  <FillerBlock key={i} block={block} i={i} />
-                ))}
-              </div>
+              {/* Decorative filler, part one. aria-hidden is applied per
+                  block (not via a wrapping div — a nested container breaks
+                  CSS multi-column fragmentation, see note above `columns-N`
+                  usage) since none of this text is meant to be read. */}
+              {blocks.slice(0, midIndex).map((block, i) => (
+                <FillerBlock key={i} block={block} i={i} ariaHidden />
+              ))}
 
               {/* The Wanted ad itself: a genuine flow child of the SAME
                   multi-column container the filler text lives in, sitting
@@ -402,11 +410,14 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               </div>
 
               {/* Decorative filler, part two. */}
-              <div aria-hidden>
-                {blocks.slice(midIndex).map((block, i) => (
-                  <FillerBlock key={midIndex + i} block={block} i={midIndex + i} />
-                ))}
-              </div>
+              {blocks.slice(midIndex).map((block, i) => (
+                <FillerBlock
+                  key={midIndex + i}
+                  block={block}
+                  i={midIndex + i}
+                  ariaHidden
+                />
+              ))}
             </div>
           </div>
 
