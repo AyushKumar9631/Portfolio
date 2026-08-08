@@ -47,6 +47,18 @@ export default function Hero() {
           {profile.name}
         </motion.h1>
 
+        <motion.svg
+          variants={item}
+          viewBox="0 0 110 30"
+          className="mx-auto mt-1 h-6 w-28 text-accent"
+          fill="none"
+        >
+          <path
+            d="M0,0 C25,20 65,25 105,10 C85,20 55,27.5 25,22.5 C12.5,20 4,12.5 0,0 Z"
+            fill="currentColor"
+          />
+        </motion.svg>
+
         <motion.p
           variants={item}
           className="mt-3 font-mono text-sm tracking-widest text-accent sm:text-base"

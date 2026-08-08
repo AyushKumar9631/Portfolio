@@ -130,7 +130,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
           </button>
 
           <p className="mt-6 font-mono text-xs tracking-widest text-muted">
-            hover the nib over the name
+            hover the quill over the name
           </p>
 
           <motion.div
@@ -138,22 +138,20 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
             style={{ x: springX, y: springY }}
             className="pointer-events-none fixed left-0 top-0 z-50 hidden sm:block"
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <svg width="28" height="34" viewBox="0 0 36 44" fill="none">
               <path
-                d="M12 2 L18 10 L14 20 L12 22 L10 20 L6 10 Z"
+                d="M8 42 C8 42 6 36 9 34 L11 37 C9 35 7 31 11 29 L13 32 C10 29 9 22 14 17 C19 10 25 4 30 2 C33 5 34 12 30 18 C26 25 19 30 14 36 C12 38 10 40 8 42 Z"
                 fill="var(--ink)"
                 stroke="var(--accent)"
-                strokeWidth="1"
+                strokeWidth="0.6"
               />
-              <line
-                x1="12"
-                y1="10"
-                x2="12"
-                y2="19"
+              <path
+                d="M27 6 C20 16 13 28 9 40"
                 stroke="var(--bg)"
-                strokeWidth="1"
+                strokeWidth="0.9"
+                fill="none"
+                strokeLinecap="round"
               />
-              <circle cx="12" cy="10" r="1.1" fill="var(--bg)" />
             </svg>
           </motion.div>
         </motion.div>
