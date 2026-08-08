@@ -117,22 +117,28 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
               viewport rather than to a position inside the word flow
               above — its location no longer depends on word count or
               column math, so it lands in the same reliable place on
-              every screen size instead of drifting off-screen. */}
+              every screen size instead of drifting off-screen.
+              Styled as a boxed classified notice (dashed cut-line +
+              corner crop-marks) rather than blended into the body text —
+              real newspapers box out ads and notices like this, so it
+              reads as part of the page rather than a floating UI element
+              even though it's visually distinct from the grey filler. */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
             <button
               type="button"
               onMouseEnter={trigger}
               onFocus={trigger}
               onClick={trigger}
-              className="group pointer-events-auto relative rounded bg-bg px-3 py-1.5 outline-none sm:cursor-none"
+              className="group corner-brackets pointer-events-auto relative border border-dashed border-line-strong bg-bg px-4 py-2.5 outline-none sm:cursor-none"
             >
-              <span className="block text-center font-mono text-[11px] font-medium tracking-widest text-ink/70 sm:text-xs">
-                Here
+              <span className="block text-center font-mono text-[11px] font-medium tracking-widest text-accent-2 sm:text-xs">
+                Wanted
               </span>
               <span className="block text-center font-display text-sm font-bold text-ink sm:text-base">
                 {profile.name}
               </span>
               <AnimatePresence>
+
                 {revealing && (
                   <motion.svg
                     key="stamp"
