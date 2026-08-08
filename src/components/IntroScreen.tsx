@@ -34,6 +34,21 @@ const EXIT_DURATION_MS = 500;
 const WORDS_PER_PX2 = 0.0026;
 const MIN_REPEAT = 6;
 const MAX_REPEAT = 50;
+// `computeRepeat()`'s `typeof window === "undefined"` branch is ONLY ever
+// true on the actual server — during the client's first hydration render,
+// `window` already exists in the browser, so that branch never runs
+// client-side. If `repeat`'s initial state were seeded by calling
+// computeRepeat() directly, the server would render with this fallback
+// while the client's very first render would immediately compute a real,
+// viewport-based value instead — a structural mismatch (different block
+// count = different number of DOM nodes) on every single page load,
+// which is exactly what throws React hydration error #418 and forces a
+// full client-side re-render, discarding whatever the server sent down.
+// Keeping this as a named constant used in BOTH places guarantees the
+// server's output and the client's first render are byte-for-byte
+// identical; the real viewport-based value is only computed afterward,
+// in a useEffect that runs post-hydration (see below).
+const SSR_SAFE_REPEAT = 10;
 
 // Words per faux "block" within the page flow. Kept short so several
 // blocks stack per column, like a real front page.
@@ -93,7 +108,7 @@ function capitalize(word: string) {
 }
 
 function computeRepeat() {
-  if (typeof window === "undefined") return 10; // generous default for first server paint
+  if (typeof window === "undefined") return SSR_SAFE_REPEAT; // matches the client's initial state below
   const area = window.innerWidth * window.innerHeight;
   const wordsNeeded = area * WORDS_PER_PX2;
   const repeat = Math.ceil(wordsNeeded / commonWords.length);
@@ -245,7 +260,7 @@ const FillerBlock = forwardRef<
 export default function IntroScreen({ onComplete }: IntroScreenProps) {
   const [visible, setVisible] = useState(true);
   const [revealing, setRevealing] = useState(false);
-  const [repeat, setRepeat] = useState(computeRepeat);
+  const [repeat, setRepeat] = useState(SSR_SAFE_REPEAT);
   const revealingRef = useRef(false);
 
   const cursorX = useMotionValue(-200);
