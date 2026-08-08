@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -14,27 +14,57 @@ type IntroScreenProps = {
   onComplete?: () => void;
 };
 
-// Repeated to give enough volume to fill the screen at a tiny font size,
-// like dense newsprint body text. The user's name is embedded near the
-// midpoint so it sits roughly in the visual center of the flowing columns.
-const REPEAT = 6;
-const repeatedWords = Array(REPEAT).fill(commonWords).flat();
-const midIndex = Math.floor(repeatedWords.length / 2);
-const beforeText = repeatedWords.slice(0, midIndex).join(" ");
-const afterText = repeatedWords.slice(midIndex).join(" ");
-
 const STAMP_DURATION_MS = 650;
 const EXIT_DURATION_MS = 500;
+
+// How many words the background texture needs scales with viewport AREA
+// (more columns AND more height on a big monitor), not with a fixed count.
+// A fixed 6x repeat of the ~1,000-word list was enough for a laptop screen
+// but ran dry partway down a large monitor, leaving a blank gap in the
+// later columns. This constant (words needed per px^2, with ~25% headroom
+// for cross-browser font-metric variance) is derived from that math and
+// recomputed on mount/resize so it always overflows the viewport instead.
+const WORDS_PER_PX2 = 0.0026;
+const MIN_REPEAT = 6;
+const MAX_REPEAT = 50;
+
+function computeRepeat() {
+  if (typeof window === "undefined") return 10; // generous default for first server paint
+  const area = window.innerWidth * window.innerHeight;
+  const wordsNeeded = area * WORDS_PER_PX2;
+  const repeat = Math.ceil(wordsNeeded / commonWords.length);
+  return Math.min(Math.max(repeat, MIN_REPEAT), MAX_REPEAT);
+}
 
 export default function IntroScreen({ onComplete }: IntroScreenProps) {
   const [visible, setVisible] = useState(true);
   const [revealing, setRevealing] = useState(false);
+  const [repeat, setRepeat] = useState(computeRepeat);
   const revealingRef = useRef(false);
 
   const cursorX = useMotionValue(-200);
   const cursorY = useMotionValue(-200);
   const springX = useSpring(cursorX, { stiffness: 400, damping: 32 });
   const springY = useSpring(cursorY, { stiffness: 400, damping: 32 });
+
+  // Recompute if the window is resized (e.g. dragged to a bigger display)
+  // while the intro is still up, so the texture never runs dry.
+  useEffect(() => {
+    function update() {
+      setRepeat(computeRepeat());
+    }
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  // Pure decorative filler now — the name is no longer spliced into this
+  // text by word index (see rationale below), so this is just one
+  // continuous block sized to whatever the current viewport needs.
+  const backgroundText = useMemo(
+    () => Array(repeat).fill(commonWords).flat().join(" "),
+    [repeat]
+  );
 
   function handleMouseMove(e: React.MouseEvent) {
     cursorX.set(e.clientX - 25);
@@ -71,49 +101,62 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
           exit={{ opacity: 0 }}
           transition={{ duration: EXIT_DURATION_MS / 1000, ease: "easeInOut" }}
         >
-          <div className="pointer-events-none absolute inset-0 overflow-hidden p-3 sm:p-6">
+          {/* Decorative texture only. Sized (via `repeat`) to always
+              overflow the viewport so the columns never run dry and leave
+              a blank gap on large monitors. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 overflow-hidden p-3 sm:p-6"
+          >
             <div className="h-full w-full columns-3 gap-3 text-justify text-[8px] leading-[1.5] text-muted/25 sm:columns-6 sm:text-[9px] lg:columns-9">
-              {beforeText}{" "}
-              <button
-                type="button"
-                onMouseEnter={trigger}
-                onFocus={trigger}
-                onClick={trigger}
-                className="group relative mx-2 inline-block break-inside-avoid rounded bg-bg px-3 py-1.5 align-middle outline-none sm:cursor-none"
-              >
-                <span className="block text-center font-mono text-[11px] font-medium tracking-widest text-ink/70 sm:text-xs">
-                  Here
-                </span>
-                <span className="block text-center font-display text-sm font-bold text-ink sm:text-base">
-                  {profile.name}
-                </span>
-                <AnimatePresence>
-                  {revealing && (
-                    <motion.svg
-                      key="stamp"
-                      viewBox="0 0 100 50"
-                      preserveAspectRatio="none"
-                      className="pointer-events-none absolute -inset-x-3 -inset-y-2 sm:-inset-x-4 sm:-inset-y-2"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.15 }}
-                    >
-                      <motion.path
-                        d="M6,25 C6,8 40,2 50,2 C62,2 94,10 94,25 C94,42 60,48 50,48 C38,48 6,40 6,25 Z"
-                        fill="none"
-                        stroke="var(--accent)"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                      />
-                    </motion.svg>
-                  )}
-                </AnimatePresence>
-              </button>{" "}
-              {afterText}
+              {backgroundText}
             </div>
+          </div>
+
+          {/* Interactive name target, anchored to a fixed spot in the
+              viewport rather than to a position inside the word flow
+              above — its location no longer depends on word count or
+              column math, so it lands in the same reliable place on
+              every screen size instead of drifting off-screen. */}
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+            <button
+              type="button"
+              onMouseEnter={trigger}
+              onFocus={trigger}
+              onClick={trigger}
+              className="group pointer-events-auto relative rounded bg-bg px-3 py-1.5 outline-none sm:cursor-none"
+            >
+              <span className="block text-center font-mono text-[11px] font-medium tracking-widest text-ink/70 sm:text-xs">
+                Here
+              </span>
+              <span className="block text-center font-display text-sm font-bold text-ink sm:text-base">
+                {profile.name}
+              </span>
+              <AnimatePresence>
+                {revealing && (
+                  <motion.svg
+                    key="stamp"
+                    viewBox="0 0 100 50"
+                    preserveAspectRatio="none"
+                    className="pointer-events-none absolute -inset-x-3 -inset-y-2 sm:-inset-x-4 sm:-inset-y-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <motion.path
+                      d="M6,25 C6,8 40,2 50,2 C62,2 94,10 94,25 C94,42 60,48 50,48 C38,48 6,40 6,25 Z"
+                      fill="none"
+                      stroke="var(--accent)"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 0.5, ease: "easeInOut" }}
+                    />
+                  </motion.svg>
+                )}
+              </AnimatePresence>
+            </button>
           </div>
 
           <button
@@ -129,7 +172,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
             transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
             className="absolute bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-bg px-3 font-mono text-xs tracking-widest text-muted"
           >
-            trace your name to enter
+            trace the wanted name to enter
           </motion.p>
 
           <motion.div
