@@ -28,11 +28,25 @@ const WORDS_PER_PX2 = 0.0026;
 const MIN_REPEAT = 6;
 const MAX_REPEAT = 50;
 
-// Words per faux "article" block within the column flow. Kept short so
-// several headline+body blocks stack per column, like a real page.
+// Words per faux "block" within the page grid. Kept short so several
+// blocks tile per row, like a real front page.
 const WORDS_PER_ARTICLE = 110;
 
-type Article = { headline: string; body: string };
+// Real front pages are a grid of story modules, not flowing text: a
+// headline always spans the same number of columns as its story, photos
+// span columns the same way, and a dominant story runs bigger than the
+// rest (see e.g. Andy Clarke's "Transcending CSS" ch.10 on broadsheet
+// grids). This repeating 5-block rhythm mimics that — one dominant
+// (2-col) story, a photo module, and regular 1-col stories between —
+// tiled down the page instead of one flat column of text.
+type BlockType = "feature" | "regular" | "image";
+
+type Block = {
+  type: BlockType;
+  headline: string;
+  body: string;
+  caption?: string;
+};
 
 function computeRepeat() {
   if (typeof window === "undefined") return 10; // generous default for first server paint
@@ -42,23 +56,63 @@ function computeRepeat() {
   return Math.min(Math.max(repeat, MIN_REPEAT), MAX_REPEAT);
 }
 
-// Chops the (viewport-scaled) word supply into article-sized chunks, each
+// Chops the (viewport-scaled) word supply into block-sized chunks, each
 // with its own short "headline" line pulled from partway through that
 // chunk's own words — cheap way to get varied-looking headlines without a
 // separate word source, since none of this text is meant to be read.
-function buildArticles(repeat: number): Article[] {
+// Every 5th block becomes a dominant "feature" (2-column headline+body)
+// and the block after it becomes an "image" module (placeholder graphic
+// + one-line cutline instead of body copy) — a fixed rhythm rather than
+// random, so the page reads as deliberately edited rather than noisy.
+function buildBlocks(repeat: number): Block[] {
   const words = Array(repeat).fill(commonWords).flat();
-  const articles: Article[] = [];
-  for (let i = 0; i < words.length; i += WORDS_PER_ARTICLE) {
+  const blocks: Block[] = [];
+  let i = 0;
+  let index = 0;
+  while (i < words.length) {
     const body = words.slice(i, i + WORDS_PER_ARTICLE);
     if (body.length === 0) break;
+    i += WORDS_PER_ARTICLE;
     const mid = Math.floor(body.length / 2);
-    articles.push({
-      headline: body.slice(mid, mid + 3).join(" "),
-      body: body.join(" "),
-    });
+    const headline = body.slice(mid, mid + 3).join(" ");
+    const cycle = index % 5;
+    index += 1;
+    if (cycle === 3) {
+      blocks.push({
+        type: "image",
+        headline,
+        body: body.join(" "),
+        caption: body.slice(0, 4).join(" "),
+      });
+    } else {
+      blocks.push({
+        type: cycle === 0 ? "feature" : "regular",
+        headline,
+        body: body.join(" "),
+      });
+    }
   }
-  return articles;
+  return blocks;
+}
+
+// Classic "image not found" glyph (frame + sun + mountains) — reads
+// instantly as "a photo goes here" without pulling in an actual image,
+// which would need real rights-cleared content this decorative texture
+// has no business using.
+function ImagePlaceholderIcon() {
+  return (
+    <svg
+      viewBox="0 0 40 30"
+      className="h-full w-full"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+    >
+      <rect x="1" y="1" width="38" height="28" rx="1" />
+      <circle cx="12" cy="10" r="3" />
+      <path d="M1 23 L13 13 L20 19 L28 9 L39 21" />
+    </svg>
+  );
 }
 
 export default function IntroScreen({ onComplete }: IntroScreenProps) {
@@ -85,9 +139,10 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
 
   // Pure decorative filler now — the name is no longer spliced into this
   // text by word index (see rationale below). Structured into headline +
-  // body "articles" (rather than one flat blob) so the columns read as an
-  // actual page instead of a wall of grey text.
-  const articles = useMemo(() => buildArticles(repeat), [repeat]);
+  // body + image "blocks" laid out on a real grid (rather than one flat
+  // blob or a flowing multi-column) so the page reads as an actual
+  // front-page module, not a wall of grey text.
+  const blocks = useMemo(() => buildBlocks(repeat), [repeat]);
 
   function handleMouseMove(e: React.MouseEvent) {
     cursorX.set(e.clientX - 25);
@@ -125,37 +180,64 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
           transition={{ duration: EXIT_DURATION_MS / 1000, ease: "easeInOut" }}
         >
           {/* Decorative texture only. Sized (via `repeat`) to always
-              overflow the viewport so the columns never run dry and leave
-              a blank gap on large monitors. Structured as headline+body
-              "articles" with column rules and a lead drop cap, rather than
-              one flat blob, so it actually reads as a newspaper page. */}
+              overflow the viewport so the grid never runs dry and leaves
+              a blank gap on large monitors. Laid out as an actual CSS
+              grid of story modules — dominant 2-column headline+body,
+              1-column stories, and image-placeholder modules with a
+              cutline — rather than flowing multi-column text, since real
+              front pages are a grid of boxed stories with headlines and
+              photos spanning columns, not one continuous text flow.
+              `dense` packing lets smaller blocks fill gaps left by wider
+              ones instead of leaving holes. */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 overflow-hidden p-3 sm:p-6"
           >
-            <div className="newsprint-columns h-full w-full columns-3 gap-3 sm:columns-6 lg:columns-9">
-              {articles.map((article, i) => {
-                const isFeature = i % 6 === 0;
+            <div
+              className="grid h-full w-full auto-rows-min grid-cols-3 gap-x-3 gap-y-3 [grid-auto-flow:dense] sm:grid-cols-6 lg:grid-cols-9"
+            >
+              {blocks.map((block, i) => {
+                const spanClass =
+                  block.type === "regular"
+                    ? "col-span-1"
+                    : "col-span-2 lg:col-span-3";
+                const isFirstTextBlock = i === 0;
+
+                if (block.type === "image") {
+                  return (
+                    <div key={i} className={`${spanClass} mb-2.5`}>
+                      <div className="flex aspect-[4/3] items-center justify-center border border-dashed border-line-strong bg-bg-elevated/40 p-3 text-muted/30">
+                        <ImagePlaceholderIcon />
+                      </div>
+                      <div className="mt-1 h-px w-full bg-line" />
+                      <p className="mt-1 text-center text-[7px] italic leading-tight text-muted/30 sm:text-[8px]">
+                        {block.caption}
+                      </p>
+                    </div>
+                  );
+                }
+
+                const isFeature = block.type === "feature";
                 return (
-                  <div key={i} className="mb-2.5 break-inside-avoid">
+                  <div key={i} className={`${spanClass} mb-2.5`}>
                     <p
                       className={
                         isFeature
-                          ? "mb-0.5 font-display text-[10px] font-bold uppercase leading-tight tracking-tight text-muted/45 sm:text-xs"
+                          ? "mb-0.5 font-display text-[11px] font-bold uppercase leading-tight tracking-tight text-muted/45 sm:text-sm"
                           : "mb-0.5 font-display text-[8px] font-semibold uppercase leading-tight tracking-tight text-muted/35 sm:text-[9px]"
                       }
                     >
-                      {article.headline}
+                      {block.headline}
                     </p>
                     <div className="mb-1 h-px w-6 bg-line" />
                     <p
                       className={`text-justify text-[8px] leading-[1.5] text-muted/25 sm:text-[9px] ${
-                        i === 0
+                        isFirstTextBlock
                           ? "first-letter:float-left first-letter:mr-1 first-letter:font-display first-letter:text-2xl first-letter:font-bold first-letter:leading-[0.8] first-letter:text-muted/45 sm:first-letter:text-3xl"
                           : ""
                       }`}
                     >
-                      {article.body}
+                      {block.body}
                     </p>
                   </div>
                 );
