@@ -4,6 +4,8 @@ import Hero from "@/components/Hero";
 import Work from "@/components/Work";
 import Stack from "@/components/Stack";
 import Timeline from "@/components/Timeline";
+import Contact from "@/components/Contact";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -15,7 +17,9 @@ export default function Home() {
         <Work />
         <Stack />
         <Timeline />
+        <Contact />
       </main>
+      <Footer />
     </>
   );
 }
