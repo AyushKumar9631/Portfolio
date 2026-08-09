@@ -460,7 +460,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
                   // the page's own background — so the box now reads as a
                   // distinct cut-out ad instead of blending into the column.
                   // Text size/weight intentionally left untouched.
-                  className="group corner-brackets pointer-events-auto relative inline-block border-[1.5px] border-dashed border-accent-2/60 bg-bg-elevated px-4 py-2.5 shadow-sm outline-none transition-colors hover:border-accent-2 sm:cursor-none"
+                  className="group corner-brackets pointer-events-auto relative inline-block border-[1.5px] border-dashed border-accent-2/60 bg-bg-elevated px-4 py-2.5 shadow-sm transition-colors hover:border-accent-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-elevated sm:cursor-none"
                 >
                   <span className="block text-center font-mono text-[clamp(11px,0.78vw,16px)] font-medium tracking-widest text-accent-2">
                     Wanted
