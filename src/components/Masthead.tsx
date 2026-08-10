@@ -23,7 +23,7 @@ export default function Masthead() {
         <span>EST. {year}</span>
       </div>
 
-      <div className="mx-auto mt-4 max-w-6xl border-t border-ink" />
+      <div className="mx-auto mt-4 max-w-6xl border-t-2 border-black" />
 
       {/* Nameplate */}
       <div className="mx-auto max-w-6xl px-6 py-6 text-center sm:py-8">
@@ -35,7 +35,7 @@ export default function Masthead() {
         </p>
       </div>
 
-      <div className="mx-auto max-w-6xl border-t border-ink" />
+      <div className="mx-auto max-w-6xl border-t-2 border-black" />
 
       {/* Byline: last update — current standing — section — price */}
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 px-6 py-3 text-center font-mono text-[10px] tracking-[0.2em] text-muted sm:text-[11px]">
@@ -48,7 +48,7 @@ export default function Masthead() {
         <span>PRICE: {masthead.price.toUpperCase()}</span>
       </div>
 
-      <div className="mx-auto max-w-6xl border-b border-ink" />
+      <div className="mx-auto max-w-6xl border-b-2 border-black" />
     </div>
   );
 }
