@@ -23,6 +23,8 @@ export type Project = {
   summary: string;
   stack: string[];
   href?: string;
+  /** E.164 phone number, e.g. "+918035016969" — renders a "Call" CTA on the card. */
+  phone?: string;
 };
 
 export const projects: Project[] = [
@@ -66,8 +68,9 @@ export const projects: Project[] = [
     org: "Jilo Health Cosmos",
     period: "Jun — Aug 2026",
     summary:
-      "A Hindi-language voice AI receptionist for Indian clinics and hospitals — answers every inbound patient call and routes it across seven conversation types (enquiries to red-flag escalation), runs outbound campaigns (screening invites, OPD follow-ups, newborn-vaccination reminders), and reschedules callbacks on request with the full prior conversation loaded. Built with a 5-person team; I was the primary contributor (~70% of the codebase) — the dashboard and its routes (patients, campaigns, calls, schedules), the core conversation-playbook library, WhatsApp appointment confirmations, and parts of the Twilio/Plivo telephony bridges were mine.",
+      "A Hindi-language voice AI receptionist for Indian clinics and hospitals — answers every inbound patient call and routes it across seven conversation types (enquiries to red-flag escalation), runs outbound campaigns (screening invites, OPD follow-ups, newborn-vaccination reminders), and reschedules callbacks on request with the full prior conversation loaded. Built as part of a 5-person engineering team.",
     stack: ["React", "TanStack Start", "TypeScript", "Supabase", "Cloudflare Workers", "ElevenLabs", "Twilio", "Plivo"],
+    phone: "+918035016969",
   },
 ];
 

@@ -1,8 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Phone } from "lucide-react";
 import { projects } from "@/lib/data";
+
+/** "+918035016969" -> "+91 80350 16969" (Indian mobile grouping). Falls back
+ *  to the raw string for any number that isn't a 10-digit +91 number. */
+function formatIndianPhone(phone: string) {
+  const match = phone.match(/^\+91(\d{5})(\d{5})$/);
+  return match ? `+91 ${match[1]} ${match[2]}` : phone;
+}
 
 const container = {
   hidden: {},
@@ -96,6 +103,16 @@ export default function Work() {
                 <p className="mt-4 flex-1 text-sm text-muted">
                   {project.summary}
                 </p>
+
+                {project.phone && (
+                  <a
+                    href={`tel:${project.phone}`}
+                    className="relative z-20 mt-4 inline-flex w-fit items-center gap-2 self-start border border-accent px-3 py-1.5 font-mono text-xs tracking-wide text-accent transition-colors hover:bg-accent hover:text-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+                  >
+                    <Phone size={14} aria-hidden="true" />
+                    Call the agent: {formatIndianPhone(project.phone)}
+                  </a>
+                )}
 
                 <div className="mt-6 flex flex-wrap gap-2 border-t border-line pt-4">
                   {project.stack.map((tech) => (
