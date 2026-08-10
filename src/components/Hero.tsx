@@ -24,7 +24,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="paper-grain relative flex min-h-screen flex-col items-center justify-center px-6 pt-16 text-center"
+      className="paper-grain relative flex min-h-screen flex-col items-center justify-center px-6 text-center"
     >
       <motion.div
         variants={container}

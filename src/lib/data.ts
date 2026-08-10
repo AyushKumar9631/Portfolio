@@ -14,6 +14,20 @@ export const profile = {
   linkedin: "https://linkedin.com/in/ayush-kumar-nitp",
 };
 
+// Powers the newspaper-style masthead at the very top of the page (above
+// the nav bar). "EST." is computed from the current date automatically
+// (see Masthead.tsx), so only these need updating by hand.
+export const masthead = {
+  edition: "The Investigation Edition",
+  subhead: "The Professional Record of a B.Tech Grad",
+  /** Update this whenever you make a real update to the site. */
+  lastUpdated: "Monday, 10 August 2026",
+  /** Your current year/standing — shown in the masthead byline row. */
+  position: "B.Tech 4th Year",
+  section: "Selected Works & Notes",
+  price: "One Chai",
+};
+
 export type Project = {
   id: string;
   tag: string;
