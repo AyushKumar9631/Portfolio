@@ -29,6 +29,17 @@ export const projects: Project[] = [
   {
     id: "01",
     tag: "Flagship",
+    name: "VaidyaScribe",
+    org: "Personal",
+    period: "2025 — 2026",
+    summary:
+      "An ambient AI clinical scribe for Indian healthcare — transcribes a doctor's consultation with Groq Whisper, extracts ten clinical entity types with Qwen3-32B, and generates an editable SOAP note plus a standards-compliant FHIR R4 bundle in under five seconds. Nothing is saved until the doctor reviews and confirms.",
+    stack: ["Next.js", "TypeScript", "Supabase", "Groq Whisper", "Qwen3-32B", "FHIR R4", "PWA"],
+    href: "https://vaidyascribe.vercel.app",
+  },
+  {
+    id: "02",
+    tag: "Multi-agent RL",
     name: "DisasterReliefOps",
     org: "OpenEnv Hackathon",
     period: "2025 — 2026",
@@ -36,17 +47,6 @@ export const projects: Project[] = [
       "A multi-agent reinforcement-learning testbed simulating humanitarian disaster response — eight AI agents cooperate and compete over scarce aid supplies across three escalating mission tiers (supply retrieval, hub distribution, crisis coordination), trained with REINFORCE/PyTorch and deployed as an OpenEnv-compliant API on HuggingFace Spaces with a live Gradio UI.",
     stack: ["Python", "PyTorch", "Gymnasium", "FastAPI", "Gradio", "HuggingFace Spaces"],
     href: "https://huggingface.co/spaces/Ayush9631/Emergent_society",
-  },
-  {
-    id: "02",
-    tag: "Full-stack",
-    name: "VaidyaScribe",
-    org: "Personal",
-    period: "2025 — 2026",
-    summary:
-      "An ambient AI clinical scribe for Indian healthcare — transcribes a doctor's consultation with Groq Whisper, extracts ten clinical entity types with Qwen3-32B, and generates an editable SOAP note plus a standards-compliant FHIR R4 bundle in under five seconds. Nothing is saved until the doctor reviews and confirms.",
-    stack: ["Next.js", "TypeScript", "Groq Whisper", "Qwen3-32B", "FHIR R4", "PWA"],
-    href: "https://vaidyascribe.vercel.app",
   },
   {
     id: "03",
@@ -58,6 +58,16 @@ export const projects: Project[] = [
       "Two hand-trained deep learning models — a CNN for cat/dog image classification and a dense network for MNIST handwritten digit recognition — served entirely client-side via TensorFlow.js, so inference runs in-browser with zero server round-trips and no image data ever leaving the device.",
     stack: ["TensorFlow.js", "Keras", "Python", "JavaScript"],
     href: "https://image-recognizer-delta.vercel.app",
+  },
+  {
+    id: "04",
+    tag: "Internship",
+    name: "Sehita",
+    org: "Jilo Health Cosmos",
+    period: "Jun — Aug 2026",
+    summary:
+      "A Hindi-language voice AI receptionist for Indian clinics and hospitals — answers every inbound patient call and routes it across seven conversation types (enquiries to red-flag escalation), runs outbound campaigns (screening invites, OPD follow-ups, newborn-vaccination reminders), and reschedules callbacks on request with the full prior conversation loaded. Built with a 5-person team; I was the primary contributor (~70% of the codebase) — the dashboard and its routes (patients, campaigns, calls, schedules), the core conversation-playbook library, WhatsApp appointment confirmations, and parts of the Twilio/Plivo telephony bridges were mine.",
+    stack: ["React", "TanStack Start", "TypeScript", "Supabase", "Cloudflare Workers", "ElevenLabs", "Twilio", "Plivo"],
   },
 ];
 
