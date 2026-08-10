@@ -115,4 +115,16 @@ export const timeline: TimelineEntry[] = [
     detail:
       "Worked on Sehita, a Hindi-language voice AI receptionist for Indian clinics — built as part of a 5-person engineering team.",
   },
+  {
+    period: "2021",
+    role: "Senior Secondary (12th)",
+    org: "Central Board of Secondary Education (CBSE)",
+    detail: "Completed with 84.5%.",
+  },
+  {
+    period: "2019",
+    role: "Secondary (10th)",
+    org: "Indian Certificate of Secondary Education (ICSE)",
+    detail: "Completed with 92.2%.",
+  },
 ];
