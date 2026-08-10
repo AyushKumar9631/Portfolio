@@ -109,17 +109,10 @@ export const timeline: TimelineEntry[] = [
       "Current CGPA 9.41. Splitting coursework and personal projects between deep learning (PyTorch, TensorFlow) and full-stack web development (the MERN stack, Next.js).",
   },
   {
-    period: "2023 — 2025",
-    role: "Active Member, Robotics Club",
-    org: "National Institute of Technology, Patna",
+    period: "Jun — Aug 2026",
+    role: "Software Engineering Intern",
+    org: "Jilo Health Cosmos",
     detail:
-      "Contributed to the college Robotics Club's build and coding work alongside coursework.",
-  },
-  {
-    period: "2023 — 2024",
-    role: "Class Representative",
-    org: "ME Section A, National Institute of Technology, Patna",
-    detail:
-      "Elected liaison between the class and department faculty for academic and administrative matters.",
+      "Worked on Sehita, a Hindi-language voice AI receptionist for Indian clinics — built as part of a 5-person engineering team.",
   },
 ];
