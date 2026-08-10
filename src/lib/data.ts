@@ -2,15 +2,16 @@
 
 export const profile = {
   name: "Ayush Kumar",
-  role: "Full-Stack Developer",
+  role: "Full-Stack Developer & ML Engineer",
   location: "Patna, India",
-  tagline: "I build web applications end to end, front to back.",
+  tagline:
+    "Building intelligent systems where deep learning, full-stack development, and clean engineering meet.",
   summary:
-    "Full-stack developer working across the MERN stack — React on the front end, Node and Express on the back end, MongoDB underneath. I like taking a project from a rough idea through to something people actually use.",
-  availability: "Open to freelance & full-time roles",
-  email: "marikayush@gmial.com.com",
-  github: "https://github.com/yourhandle",
-  linkedin: "https://www.linkedin.com/in/yourhandle/",
+    "Computer Science undergrad at NIT Patna (CGPA 9.41) who ships full projects, not just notebooks — from a multi-agent reinforcement-learning testbed for disaster response to a production clinical-scribe app built for real doctors. Comfortable moving between PyTorch/TensorFlow on the ML side and React/Next.js on the product side.",
+  availability: "Open to internships, freelance & research collaborations",
+  email: "ayushkr1.ug23.cs@nitp.ac.in",
+  github: "https://github.com/AyushKumar9631",
+  linkedin: "https://linkedin.com/in/ayush-kumar-nitp",
 };
 
 export type Project = {
@@ -28,35 +29,35 @@ export const projects: Project[] = [
   {
     id: "01",
     tag: "Flagship",
-    name: "Project One",
-    org: "Personal / Client",
-    period: "2026 — Now",
+    name: "DisasterReliefOps",
+    org: "OpenEnv Hackathon",
+    period: "2025 — 2026",
     summary:
-      "One or two sentences on what this project does and the problem it solves. Mention the part you owned end to end.",
-    stack: ["React", "Node.js", "Express", "MongoDB"],
-    href: "#",
+      "A multi-agent reinforcement-learning testbed simulating humanitarian disaster response — eight AI agents cooperate and compete over scarce aid supplies across three escalating mission tiers (supply retrieval, hub distribution, crisis coordination), trained with REINFORCE/PyTorch and deployed as an OpenEnv-compliant API on HuggingFace Spaces with a live Gradio UI.",
+    stack: ["Python", "PyTorch", "Gymnasium", "FastAPI", "Gradio", "HuggingFace Spaces"],
+    href: "https://huggingface.co/spaces/Ayush9631/Emergent_society",
   },
   {
     id: "02",
-    tag: "Client work",
-    name: "Project Two",
-    org: "Client name",
-    period: "2025",
+    tag: "Full-stack",
+    name: "VaidyaScribe",
+    org: "Personal",
+    period: "2025 — 2026",
     summary:
-      "What the client needed, what you built, and the outcome — a metric or concrete result if you have one.",
-    stack: ["React", "Express", "MongoDB", "AWS S3"],
-    href: "#",
+      "An ambient AI clinical scribe for Indian healthcare — transcribes a doctor's consultation with Groq Whisper, extracts ten clinical entity types with Qwen3-32B, and generates an editable SOAP note plus a standards-compliant FHIR R4 bundle in under five seconds. Nothing is saved until the doctor reviews and confirms.",
+    stack: ["Next.js", "TypeScript", "Groq Whisper", "Qwen3-32B", "FHIR R4", "PWA"],
+    href: "https://vaidyascribe.vercel.app",
   },
   {
     id: "03",
-    tag: "Side project",
-    name: "Project Three",
+    tag: "In-browser ML",
+    name: "Neural Vision",
     org: "Personal",
-    period: "2025",
+    period: "Oct — Nov 2025",
     summary:
-      "A short, specific description. Avoid generic phrasing like 'a full-stack app' — say what it actually does.",
-    stack: ["Next.js", "MongoDB", "Tailwind"],
-    href: "#",
+      "Two hand-trained deep learning models — a CNN for cat/dog image classification and a dense network for MNIST handwritten digit recognition — served entirely client-side via TensorFlow.js, so inference runs in-browser with zero server round-trips and no image data ever leaving the device.",
+    stack: ["TensorFlow.js", "Keras", "Python", "JavaScript"],
+    href: "https://image-recognizer-delta.vercel.app",
   },
 ];
 
@@ -68,14 +69,15 @@ export type StackItem = {
 };
 
 export const stack: StackItem[] = [
+  { code: "JS/TS", name: "JavaScript / TypeScript", detail: "Primary tool", status: "daily" },
+  { code: "PY", name: "Python", detail: "Primary tool", status: "daily" },
   { code: "RCT", name: "React", detail: "Primary tool", status: "daily" },
-  { code: "NODE", name: "Node.js", detail: "Primary tool", status: "daily" },
-  { code: "EXPR", name: "Express", detail: "Primary tool", status: "daily" },
-  { code: "MDB", name: "MongoDB", detail: "Primary tool", status: "daily" },
   { code: "NEXT", name: "Next.js", detail: "Comfortable", status: "comfortable" },
-  { code: "TWX", name: "Tailwind CSS", detail: "Comfortable", status: "comfortable" },
-  { code: "SUPA", name: "Supabase", detail: "Comfortable", status: "comfortable" },
-  { code: "TS", name: "TypeScript", detail: "Learning", status: "learning" },
+  { code: "NODE", name: "Node.js / Express", detail: "Comfortable", status: "comfortable" },
+  { code: "TF", name: "TensorFlow / Keras", detail: "Comfortable", status: "comfortable" },
+  { code: "TORCH", name: "PyTorch", detail: "Comfortable", status: "comfortable" },
+  { code: "MDB", name: "MongoDB", detail: "Comfortable", status: "comfortable" },
+  { code: "GIT", name: "Git / GitHub", detail: "Daily", status: "daily" },
 ];
 
 export type TimelineEntry = {
@@ -87,21 +89,24 @@ export type TimelineEntry = {
 
 export const timeline: TimelineEntry[] = [
   {
-    period: "2026 — Now",
-    role: "Full-Stack Developer",
-    org: "Company / Freelance",
-    detail: "What you're doing day to day, in plain terms.",
+    period: "2023 — 2027",
+    role: "B.Tech, Computer Science Engineering",
+    org: "National Institute of Technology, Patna",
+    detail:
+      "Current CGPA 9.41. Splitting coursework and personal projects between deep learning (PyTorch, TensorFlow) and full-stack web development (the MERN stack, Next.js).",
   },
   {
-    period: "2024 — 2026",
-    role: "Your previous role",
-    org: "Company name",
-    detail: "What you built or learned there.",
+    period: "2023 — 2025",
+    role: "Active Member, Robotics Club",
+    org: "National Institute of Technology, Patna",
+    detail:
+      "Contributed to the college Robotics Club's build and coding work alongside coursework.",
   },
   {
     period: "2023 — 2024",
-    role: "Learning the MERN stack",
-    org: "Self-taught / Bootcamp",
-    detail: "Where you started — worth keeping if it's part of your story.",
+    role: "Class Representative",
+    org: "ME Section A, National Institute of Technology, Patna",
+    detail:
+      "Elected liaison between the class and department faculty for academic and administrative matters.",
   },
 ];

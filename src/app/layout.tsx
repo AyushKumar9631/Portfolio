@@ -16,9 +16,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Your Name — Full-Stack Developer",
+  title: "Ayush Kumar — Full-Stack Developer & ML Engineer",
   description:
-    "Full-stack developer building web applications with the MERN stack.",
+    "Portfolio of Ayush Kumar — building intelligent systems where deep learning, full-stack development, and clean engineering meet.",
 };
 
 export default function RootLayout({
