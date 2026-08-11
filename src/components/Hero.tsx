@@ -142,7 +142,7 @@ export default function Hero() {
 
           {/* Right column: portrait placeholder + caption + body copy */}
           <div className="border-t-2 border-ink pt-[22px] lg:border-l lg:border-t-0 lg:border-line-strong lg:pl-[34px] lg:pt-0">
-            <div className="relative aspect-square w-full overflow-hidden border-2 border-ink bg-bg-elevated/40">
+            <div className="relative aspect-square w-full overflow-hidden border-2 border-ink bg-bg">
               <Image
                 src="/images/portrait.png"
                 alt={`${profile.name} — ${hero.pictureCaption}`}
