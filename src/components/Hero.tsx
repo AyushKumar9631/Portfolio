@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { hero } from "@/lib/data";
+import { hero, profile } from "@/lib/data";
 
 const PATNA_LAT = 25.5941;
 const PATNA_LON = 85.1376;
@@ -33,26 +34,6 @@ const WEATHER_CODES: Record<number, string> = {
   96: "Thunderstorms",
   99: "Thunderstorms",
 };
-
-// Same "image not found" glyph (frame + sun + mountains) used as the
-// decorative photo placeholder in IntroScreen.tsx — reused here so the
-// portrait slot reads as "a photo goes here" without needing real,
-// rights-cleared image content.
-function ImagePlaceholderIcon() {
-  return (
-    <svg
-      viewBox="0 0 40 30"
-      className="h-14 w-14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1"
-    >
-      <rect x="1" y="1" width="38" height="28" rx="1" />
-      <circle cx="12" cy="10" r="3" />
-      <path d="M1 23 L13 13 L20 19 L28 9 L39 21" />
-    </svg>
-  );
-}
 
 const STAT_CELL_CLASS = [
   "border-b border-r border-line-strong px-[18px] py-4 sm:border-b-0 sm:border-r",
@@ -161,8 +142,15 @@ export default function Hero() {
 
           {/* Right column: portrait placeholder + caption + body copy */}
           <div className="border-t-2 border-ink pt-[22px] lg:border-l lg:border-t-0 lg:border-line-strong lg:pl-[34px] lg:pt-0">
-            <div className="flex aspect-square w-full items-center justify-center border-2 border-ink bg-bg-elevated/40 text-muted/40">
-              <ImagePlaceholderIcon />
+            <div className="relative aspect-square w-full overflow-hidden border-2 border-ink bg-bg-elevated/40">
+              <Image
+                src="/images/portrait.png"
+                alt={`${profile.name} — ${hero.pictureCaption}`}
+                fill
+                sizes="(max-width: 1024px) 100vw, 380px"
+                className="object-cover"
+                priority
+              />
             </div>
             <p className="mt-2 font-mono text-[11px] font-medium leading-[1.4] tracking-[0.04em] text-muted">
               <b className="font-bold uppercase tracking-[0.1em] text-ink">
