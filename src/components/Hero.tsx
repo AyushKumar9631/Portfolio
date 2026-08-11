@@ -1,7 +1,38 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { hero } from "@/lib/data";
+
+const PATNA_LAT = 25.5941;
+const PATNA_LON = 85.1376;
+
+// WMO weather codes -> short label, matching the terse editorial voice
+// used elsewhere in the stats row. Unmapped codes fall through to a
+// generic label rather than breaking the tile.
+const WEATHER_CODES: Record<number, string> = {
+  0: "Clear Skies",
+  1: "Mostly Clear",
+  2: "Partly Cloudy",
+  3: "Overcast",
+  45: "Foggy",
+  48: "Foggy",
+  51: "Light Drizzle",
+  53: "Drizzle",
+  55: "Heavy Drizzle",
+  61: "Light Rain",
+  63: "Rain",
+  65: "Heavy Rain",
+  71: "Light Snow",
+  73: "Snow",
+  75: "Heavy Snow",
+  80: "Rain Showers",
+  81: "Rain Showers",
+  82: "Heavy Showers",
+  95: "Thunderstorms",
+  96: "Thunderstorms",
+  99: "Thunderstorms",
+};
 
 // Same "image not found" glyph (frame + sun + mountains) used as the
 // decorative photo placeholder in IntroScreen.tsx — reused here so the
@@ -31,6 +62,44 @@ const STAT_CELL_CLASS = [
 ];
 
 export default function Hero() {
+  // Initial state = the static fallback from data.ts, so SSR and the
+  // client's first render match exactly (no hydration mismatch). The
+  // live fetch below only runs after mount and just overwrites the
+  // weather tile; every other failure path leaves this fallback in place.
+  const [stats, setStats] = useState(hero.stats);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${PATNA_LAT}&longitude=${PATNA_LON}&current=temperature_2m,weather_code&timezone=Asia%2FKolkata`,
+      { signal: controller.signal }
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error("weather fetch failed");
+        return res.json();
+      })
+      .then((data) => {
+        const temp = Math.round(data?.current?.temperature_2m);
+        const code = data?.current?.weather_code;
+        if (!Number.isFinite(temp)) throw new Error("bad weather payload");
+        const condition = WEATHER_CODES[code] ?? "Patna Weather";
+        setStats((prev) =>
+          prev.map((stat, i) =>
+            i === 1
+              ? { value: `${temp}°C`, label: `Patna · ${condition}` }
+              : stat
+          )
+        );
+      })
+      .catch(() => {
+        // Fetch failed or returned something unexpected — the fallback
+        // value already set as initial state stays as-is.
+      });
+
+    return () => controller.abort();
+  }, []);
+
   return (
     <section id="hero" className="pb-2 pt-8 sm:pt-10">
       <motion.div
@@ -49,7 +118,7 @@ export default function Hero() {
           {/* Left column: headline, quote, CTAs, stats */}
           <div>
             <span className="block font-mono text-xs font-bold uppercase tracking-[0.18em] text-ink">
-              Case No. {hero.caseNumber} — {hero.statusLabel}
+              Project No. {hero.caseNumber} — {hero.statusLabel}
             </span>
 
             <h1 className="mt-1 font-display text-[clamp(32px,5.3vw,69px)] font-semibold leading-none tracking-tight text-ink">
@@ -77,7 +146,7 @@ export default function Hero() {
             </div>
 
             <div className="mt-[30px] grid grid-cols-2 border-y-2 border-ink sm:grid-cols-4">
-              {hero.stats.map((stat, i) => (
+              {stats.map((stat, i) => (
                 <div key={stat.label} className={STAT_CELL_CLASS[i]}>
                   <div className="whitespace-nowrap font-display text-[clamp(22px,2.3vw,32px)] leading-none text-ink">
                     {stat.value}

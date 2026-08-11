@@ -35,8 +35,8 @@ export const masthead = {
 export const hero = {
   sectionLabel: "Front Page",
   filedUnder: "Open Investigations",
-  caseNumber: "43",
-  statusLabel: "Findings Published",
+  caseNumber: "02",
+  statusLabel: "Internship Closed",
   headlineLead: "A Nitian engineer who likes building things — ",
   headlineEmphasis: "from full-stack development to ML.",
   pullQuote:
@@ -44,10 +44,13 @@ export const hero = {
   primaryCta: { label: "Read the work", href: "#work" },
   secondaryCta: { label: "Get in touch", href: "#contact" },
   stats: [
-    { value: "No. 43", label: "Edition · first printing" },
-    { value: "Patna", label: "India · always online" },
+    { value: "No. 01", label: "Edition · first printing" },
+    // Fallback only — Hero.tsx fetches live Patna weather on mount and
+    // overwrites this entry. Kept as a plausible static value so the
+    // tile never shows a blank/broken state if that fetch fails.
+    { value: "31°C", label: "Patna · Humid & Warm" },
     { value: "Global", label: "Circulation · remote-friendly" },
-    { value: "Late Final", label: "Ships when it's ready" },
+    { value: "Early Final", label: "7th sem to grad" },
   ],
   pictureCaption: "the subject, in his natural habitat",
   body: [
