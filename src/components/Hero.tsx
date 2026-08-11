@@ -52,7 +52,7 @@ export default function Hero() {
               Case No. {hero.caseNumber} — {hero.statusLabel}
             </span>
 
-            <h1 className="mt-1 font-display text-[clamp(40px,6.6vw,86px)] font-semibold leading-none tracking-tight text-ink">
+            <h1 className="mt-1 font-display text-[clamp(32px,5.3vw,69px)] font-semibold leading-none tracking-tight text-ink">
               {hero.headlineLead}
               <em className="italic">{hero.headlineEmphasis}</em>
             </h1>
