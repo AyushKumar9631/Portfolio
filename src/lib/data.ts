@@ -28,6 +28,34 @@ export const masthead = {
   price: "One Chai",
 };
 
+// Powers the newspaper front-page section directly below the nav bar
+// (Hero.tsx). caseNumber is reused both in the kicker ("Case No. 43")
+// and the first stat tile ("No. 43") so it only needs updating in one
+// place.
+export const hero = {
+  sectionLabel: "Front Page",
+  filedUnder: "Open Investigations",
+  caseNumber: "43",
+  statusLabel: "Findings Published",
+  headlineLead: "A Nitian engineer who likes building things — ",
+  headlineEmphasis: "from full-stack development to ML.",
+  pullQuote:
+    "Three years in: a Nitian engineer who builds web applications, explores ML, and loves turning ideas into things that work.",
+  primaryCta: { label: "Read the work", href: "#work" },
+  secondaryCta: { label: "Get in touch", href: "#contact" },
+  stats: [
+    { value: "No. 43", label: "Edition · first printing" },
+    { value: "Patna", label: "India · always online" },
+    { value: "Global", label: "Circulation · remote-friendly" },
+    { value: "Late Final", label: "Ships when it's ready" },
+  ],
+  pictureCaption: "the subject, in his natural habitat",
+  body: [
+    "He enjoys the whole process — from a rough idea to something that ships. His main stack includes Next.js, Tailwind, and Supabase, with ML and AI added to the mix whenever the problem demands it.",
+    "He's equally drawn to ML and AI — experimenting with models, exploring new ideas, and finding practical ways to put them to work. From building intelligent features to working with AI-powered systems, he enjoys the process of turning complex problems into useful solutions.",
+  ],
+};
+
 export type Project = {
   id: string;
   tag: string;
