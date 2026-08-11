@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { profile } from "@/lib/data";
@@ -14,6 +14,34 @@ const links = [
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const [activeId, setActiveId] = useState("");
+
+  // Tracks whichever section currently owns the middle of the viewport
+  // and highlights the matching nav link. The -45%/-45% rootMargin
+  // shrinks the observed area to a thin band around vertical center, so
+  // the active link switches right as a section crosses the middle of
+  // the screen rather than the moment it merely enters the viewport.
+  useEffect(() => {
+    const sections = links
+      .map((link) => document.querySelector(link.href))
+      .filter((el): el is Element => el !== null);
+
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveId(`#${entry.target.id}`);
+          }
+        }
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-black bg-bg/80 backdrop-blur-sm">
@@ -31,7 +59,11 @@ export default function Nav() {
             <li key={link.href}>
               <a
                 href={link.href}
-                className="transition-colors hover:text-accent-2"
+                className={`underline-offset-[6px] transition-colors hover:text-accent-2 ${
+                  activeId === link.href
+                    ? "text-ink underline decoration-2"
+                    : ""
+                }`}
               >
                 {link.label}
               </a>
@@ -64,7 +96,11 @@ export default function Nav() {
                 <a
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="block px-6 py-4 transition-colors hover:text-accent-2"
+                  className={`block px-6 py-4 underline-offset-4 transition-colors hover:text-accent-2 ${
+                    activeId === link.href
+                      ? "text-ink underline decoration-2"
+                      : ""
+                  }`}
                 >
                   {link.label}
                 </a>
