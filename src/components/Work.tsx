@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Phone } from "lucide-react";
-import { projects } from "@/lib/data";
+import { Phone } from "lucide-react";
+import { projects, type Project } from "@/lib/data";
+
+const EXHIBIT_LETTERS = ["A", "B", "C", "D", "E", "F", "G"];
 
 /** "+918035016969" -> "+91 80350 16969" (Indian mobile grouping). Falls back
  *  to the raw string for any number that isn't a 10-digit +91 number. */
@@ -11,124 +13,307 @@ function formatIndianPhone(phone: string) {
   return match ? `+91 ${match[1]} ${match[2]}` : phone;
 }
 
-const container = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.12, delayChildren: 0.05 },
-  },
+function hostFromUrl(url: string) {
+  try {
+    return new URL(url).host;
+  } catch {
+    return url;
+  }
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
 
-const item = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" as const },
-  },
+const staggerGrid = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
 };
+
+/** Hand-drawn circle behind the "Exhibit X" tag, in the caption bar under
+ * each thumbnail. Draws itself in once when scrolled into view. */
+function SketchCircle() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 120 44"
+      preserveAspectRatio="none"
+      className="pointer-events-none absolute -bottom-1.5 -left-2 -right-3 -top-1.5 h-[calc(100%+12px)] w-[calc(100%+20px)]"
+    >
+      <motion.path
+        d="M10 24 C 8 10, 44 4, 76 7 C 104 10, 116 18, 112 28 C 108 38, 70 42, 40 39 C 16 37, 8 30, 12 20"
+        fill="none"
+        stroke="var(--accent-2)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        opacity="0.85"
+        initial={{ pathLength: 0 }}
+        whileInView={{ pathLength: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+      />
+    </svg>
+  );
+}
+
+/** The "taped photograph" thumbnail: real screenshots aren't wired up yet,
+ * so this renders as a labeled placeholder frame instead of an <img>. Swap
+ * in next/image once real screenshots exist — the frame markup stays. */
+function ThumbnailFrame({
+  exhibitLabel,
+  caption,
+  captionHref,
+  heightClass,
+}: {
+  exhibitLabel: string;
+  caption: string;
+  captionHref?: string;
+  heightClass: string;
+}) {
+  return (
+    <div className="relative border border-ink/25 bg-bg p-2 pb-0 shadow-[0_2px_14px_rgba(22,20,15,0.14)]">
+      <span
+        aria-hidden="true"
+        className="absolute -top-2 left-1/2 z-[1] h-4 w-16 -translate-x-1/2 -rotate-2 border border-ink/10 bg-bg-elevated/75"
+      />
+      <div
+        className={`relative overflow-hidden border border-ink/40 bg-bg-elevated/50 ${heightClass} flex items-center justify-center`}
+      >
+        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted/70">
+          Screenshot pending
+        </span>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-60"
+          style={{
+            backgroundImage:
+              "radial-gradient(rgba(138,109,59,0.5) 0.7px, transparent 0.8px)",
+            backgroundSize: "4px 4px",
+            mixBlendMode: "multiply",
+          }}
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute right-2.5 top-2.5 rotate-[8deg] scale-150 border-[3px] border-accent-2 bg-bg/85 px-2.5 py-1 font-mono text-[11px] font-black uppercase tracking-[0.18em] text-accent-2 opacity-0 transition-all duration-200 ease-out group-hover:-rotate-[8deg] group-hover:scale-100 group-hover:opacity-100"
+        >
+          Confirmed
+        </span>
+      </div>
+      <div className="flex items-center justify-between gap-3 px-1 py-1.5 font-mono text-[11px] tracking-[0.02em] text-muted">
+        <span className="relative shrink-0 font-bold uppercase text-ink">
+          {exhibitLabel}
+          <SketchCircle />
+        </span>
+        {captionHref ? (
+          <a
+            href={captionHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative z-20 truncate underline-offset-2 hover:underline"
+          >
+            {caption}
+          </a>
+        ) : (
+          <span className="truncate">{caption}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TagPills({ stack }: { stack: string[] }) {
+  return (
+    <div className="mb-4 mt-[18px] flex flex-wrap gap-1.5">
+      {stack.map((tech) => (
+        <span
+          key={tech}
+          className="inline-flex items-center gap-1.5 border border-ink px-2.5 py-[3px] font-mono text-[11px] font-medium text-ink"
+        >
+          {tech}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** "Open case file" -> deep-dive page for this project. Not built yet, so
+ * this is intentionally inert for now (no href, no route). */
+function CaseFileButton({ label }: { label: string }) {
+  return (
+    <button
+      type="button"
+      className="group/link inline-flex items-center gap-1.5 border-b-[1.5px] border-accent-2 pb-0.5 font-mono text-xs font-bold uppercase tracking-[0.08em] text-accent-2"
+    >
+      {label}
+      <span className="transition-transform duration-150 group-hover/link:translate-x-1">
+        →
+      </span>
+    </button>
+  );
+}
+
+function FeaturedExhibit({ project }: { project: Project }) {
+  return (
+    <motion.article
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.3 }}
+      className="group relative flex flex-col items-stretch gap-8 border-b border-ink/25 py-7 transition-colors hover:bg-bg-elevated/40 lg:flex-row"
+    >
+      <div className="w-full self-start lg:w-[46%] lg:flex-none">
+        <ThumbnailFrame
+          exhibitLabel="Exhibit A"
+          caption={project.href ? `recovered from ${hostFromUrl(project.href)}` : `recovered from ${project.org}`}
+          captionHref={project.href}
+          heightClass="aspect-video lg:aspect-auto lg:h-[272px]"
+        />
+      </div>
+
+      <div className="flex flex-1 flex-col">
+        <span className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-accent-2">
+          Exhibit A
+        </span>
+        <span className="mt-3 font-mono text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink">
+          {project.name} · {project.tag}
+        </span>
+        <h3 className="mt-2 font-display text-[clamp(30px,3.6vw,46px)] font-normal leading-[1.06] tracking-[-0.01em] text-ink">
+          {project.name}
+        </h3>
+        <p className="mt-3.5 mb-auto max-w-[60ch] font-display text-[17px] leading-[1.55] text-muted [hyphens:auto] [text-align:justify]">
+          {project.summary}
+        </p>
+
+        <TagPills stack={project.stack} />
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/25 pt-3.5">
+          <span className="font-mono text-xs text-muted">
+            {project.period} · {project.org}
+          </span>
+          <div className="flex items-center gap-4">
+            {project.phone && (
+              <a
+                href={`tel:${project.phone}`}
+                className="relative z-20 inline-flex items-center gap-2 border border-accent px-3 py-1.5 font-mono text-xs tracking-wide text-accent transition-colors hover:bg-accent hover:text-bg"
+              >
+                <Phone size={14} aria-hidden="true" />
+                Call: {formatIndianPhone(project.phone)}
+              </a>
+            )}
+            <CaseFileButton label="Open case file" />
+          </div>
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+function GridExhibit({ project, letter }: { project: Project; letter: string }) {
+  return (
+    <motion.article
+      variants={fadeUp}
+      className="group relative flex flex-col border-t border-ink/25 py-[26px] pr-0 transition-colors hover:bg-bg-elevated/40 sm:border-r sm:border-ink/25 sm:pr-[26px] sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-child(2n)]:pr-0 lg:border-r lg:border-ink/25 lg:pr-[26px] lg:[&:nth-child(2n)]:border-r lg:[&:nth-child(2n)]:pr-[26px] lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-child(3n)]:pr-0"
+    >
+      <span className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-accent-2">
+        Exhibit {letter}
+      </span>
+      <span className="mt-3 font-mono text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink">
+        {project.org}
+      </span>
+      <h3 className="mt-2 min-h-[calc(2*28px*1.06)] font-display text-[28px] font-normal leading-[1.06] tracking-[-0.01em] text-ink">
+        {project.name}
+      </h3>
+
+      <div className="mt-4">
+        <ThumbnailFrame
+          exhibitLabel={`Exhibit ${letter}`}
+          caption={project.href ? `recovered from ${hostFromUrl(project.href)}` : `recovered from ${project.org}`}
+          captionHref={project.href}
+          heightClass="h-[176px]"
+        />
+      </div>
+
+      <p className="mt-3.5 mb-auto font-display text-[15px] leading-[1.55] text-muted [hyphens:auto] [text-align:justify]">
+        {project.summary}
+      </p>
+
+      <TagPills stack={project.stack} />
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/25 pt-3.5">
+        <span className="font-mono text-xs text-muted">{project.period}</span>
+        <div className="flex items-center gap-4">
+          {project.phone && (
+            <a
+              href={`tel:${project.phone}`}
+              className="relative z-20 inline-flex items-center gap-2 border border-accent px-2.5 py-1 font-mono text-[11px] tracking-wide text-accent transition-colors hover:bg-accent hover:text-bg"
+            >
+              <Phone size={12} aria-hidden="true" />
+              Call
+            </a>
+          )}
+          <CaseFileButton label="Open case file" />
+        </div>
+      </div>
+    </motion.article>
+  );
+}
 
 export default function Work() {
+  const featured = projects.find((p) => p.tag === "Flagship") ?? projects[0];
+  const rest = projects.filter((p) => p !== featured);
+  const lastLetter = EXHIBIT_LETTERS[rest.length] ?? "?";
+
   return (
-    <section id="work" className="bg-bg-elevated px-6 py-24 sm:py-32">
-      <div className="mx-auto max-w-6xl">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 0.5, ease: "easeOut" as const }}
-          className="mb-12 flex flex-wrap items-end justify-between gap-4 border-b border-line-strong pb-4"
-        >
-          <div>
-            <span className="font-mono text-xs tracking-widest text-accent-2">
-              SELECTED WORK
-            </span>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-ink sm:text-4xl">
-              Projects
-            </h2>
+    <>
+      {/* Full-bleed thick divider between the front page and the work
+          section — deliberately outside the max-w container below. */}
+      <div className="h-2 w-full bg-ink" aria-hidden="true" />
+
+      <section id="work" className="bg-bg px-6 py-24 sm:py-32">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-[30px]">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.6 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="flex flex-wrap items-baseline justify-between gap-5 pb-2.5"
+            >
+              <div>
+                <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-ink">
+                  The Evidence
+                </span>
+                <h2 className="mt-1.5 font-display text-[clamp(30px,4vw,46px)] font-normal leading-[1.02] tracking-[-0.015em] text-ink">
+                  Selected Works
+                </h2>
+              </div>
+              <span className="whitespace-nowrap font-mono text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                Exhibits A – {lastLetter} · Entered 2025 – Now
+              </span>
+            </motion.div>
+            <div className="h-1 bg-ink" />
           </div>
-          <span className="font-mono text-xs tracking-widest text-muted">
-            {String(projects.length).padStart(2, "0")} ENTRIES
-          </span>
-        </motion.div>
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {projects.map((project) => {
-            const hasLink = Boolean(project.href) && project.href !== "#";
+          {featured && <FeaturedExhibit project={featured} />}
 
-            return (
-              <motion.div
+          <motion.div
+            variants={staggerGrid}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.15 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {rest.map((project, i) => (
+              <GridExhibit
                 key={project.id}
-                variants={item}
-                className="corner-brackets group relative flex flex-col border border-line bg-bg p-6 transition-colors hover:border-accent-2"
-              >
-                {hasLink && (
-                  <a
-                    href={project.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="absolute inset-0 z-10"
-                    aria-label={`View ${project.name} (opens in new tab)`}
-                  />
-                )}
-
-                <div className="flex items-start justify-between gap-3">
-                  <span className="font-mono text-xs tracking-widest text-muted">
-                    {project.id}
-                  </span>
-                  <span className="border border-line-strong px-2 py-0.5 font-mono text-[10px] tracking-widest text-accent-2">
-                    {project.tag.toUpperCase()}
-                  </span>
-                </div>
-
-                <h3 className="mt-4 flex items-center gap-1 font-display text-xl font-semibold text-ink">
-                  {project.name}
-                  {hasLink && (
-                    <ArrowUpRight
-                      size={16}
-                      className="-translate-y-0.5 text-accent opacity-0 transition-opacity group-hover:opacity-100"
-                      aria-hidden="true"
-                    />
-                  )}
-                </h3>
-                <p className="mt-1 font-mono text-[11px] tracking-widest text-muted">
-                  {project.org.toUpperCase()} — {project.period.toUpperCase()}
-                </p>
-
-                <p className="mt-4 flex-1 text-sm text-muted">
-                  {project.summary}
-                </p>
-
-                {project.phone && (
-                  <a
-                    href={`tel:${project.phone}`}
-                    className="relative z-20 mt-4 inline-flex w-fit items-center gap-2 self-start border border-accent px-3 py-1.5 font-mono text-xs tracking-wide text-accent transition-colors hover:bg-accent hover:text-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-                  >
-                    <Phone size={14} aria-hidden="true" />
-                    Call the agent: {formatIndianPhone(project.phone)}
-                  </a>
-                )}
-
-                <div className="mt-6 flex flex-wrap gap-2 border-t border-line pt-4">
-                  {project.stack.map((tech) => (
-                    <span
-                      key={tech}
-                      className="border border-line px-2 py-1 font-mono text-[10px] tracking-widest text-ink"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      </div>
-    </section>
+                project={project}
+                letter={EXHIBIT_LETTERS[i + 1] ?? "?"}
+              />
+            ))}
+          </motion.div>
+        </div>
+      </section>
+    </>
   );
 }
