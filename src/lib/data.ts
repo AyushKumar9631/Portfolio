@@ -38,8 +38,8 @@ export const hero = {
   filedUnder: "Open Investigations",
   caseNumber: "02",
   statusLabel: "Internship Closed",
-  headlineLead: "A Nitian engineer who likes building things — ",
-  headlineEmphasis: "from full-stack development to ML.",
+  headlineLead: "Laziness Bred Automation. Curiosity Did the Rest — ",
+  headlineEmphasis: "from development to AI & ML.",
   pullQuote:
     "Three years in: a Nitian engineer who builds web applications, explores ML, and loves turning ideas into things that work.",
   primaryCta: { label: "Read the work", href: "#work" },
