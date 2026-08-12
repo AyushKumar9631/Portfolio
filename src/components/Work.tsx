@@ -213,7 +213,7 @@ function GridExhibit({ project, letter }: { project: Project; letter: string }) 
   return (
     <motion.article
       variants={fadeUp}
-      className="group relative flex flex-col border-t border-ink/25 py-[26px] pr-0 transition-colors hover:bg-bg-elevated/40 sm:border-r sm:border-ink/25 sm:pr-[26px] sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-child(2n)]:pr-0 lg:border-r lg:border-ink/25 lg:pr-[26px] lg:[&:nth-child(2n)]:border-r lg:[&:nth-child(2n)]:pr-[26px] lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-child(3n)]:pr-0"
+      className="group relative flex flex-col border-t border-ink/25 py-[26px] pl-4 pr-0 transition-colors hover:bg-bg-elevated/40 sm:border-r sm:border-ink/25 sm:pr-[26px] sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-child(2n)]:pr-0 lg:border-r lg:border-ink/25 lg:pr-[26px] lg:[&:nth-child(2n)]:border-r lg:[&:nth-child(2n)]:pr-[26px] lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-child(3n)]:pr-0"
     >
       <span className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-accent-2">
         Exhibit {letter}
@@ -262,6 +262,10 @@ function GridExhibit({ project, letter }: { project: Project; letter: string }) 
 export default function Work() {
   const featured = projects.find((p) => p.tag === "Flagship") ?? projects[0];
   const rest = projects.filter((p) => p !== featured);
+  // Exhibit B and D swapped per request — first and last grid slots trade places.
+  if (rest.length > 1) {
+    [rest[0], rest[rest.length - 1]] = [rest[rest.length - 1], rest[0]];
+  }
   const lastLetter = EXHIBIT_LETTERS[rest.length] ?? "?";
 
   return (
