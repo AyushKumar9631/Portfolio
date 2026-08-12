@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { profile, masthead } from "@/lib/data";
 
 /** Small inline separator dot used between the byline segments. */
@@ -6,6 +10,61 @@ function Dot() {
     <span aria-hidden="true" className="text-line-strong">
       •
     </span>
+  );
+}
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.022, delayChildren: 0.1 } },
+};
+
+const charVariant = {
+  hidden: { opacity: 0, x: -6 },
+  show: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.22, ease: "easeOut" as const },
+  },
+};
+
+/** Replaces the static "last updated" date with today's actual date,
+ * computed client-side so it's always current, revealed one character
+ * at a time left-to-right on every mount (load or refresh). */
+function AnimatedDate() {
+  const [label, setLabel] = useState("");
+
+  useEffect(() => {
+    // Deliberately computed only after mount, never during SSR: the
+    // server-rendered HTML can be a day (or more) stale by the time a
+    // visitor loads it, so "today" has to come from the browser's own
+    // clock, not the render that produced the initial markup.
+    const today = new Date()
+      .toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+      .toUpperCase();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing with the browser's clock, not derivable during render/SSR
+    setLabel(today);
+  }, []);
+
+  return (
+    <motion.span
+      key={label}
+      variants={container}
+      initial="hidden"
+      animate="show"
+      aria-label={label}
+      className="inline-flex"
+    >
+      {Array.from(label).map((char, i) => (
+        <motion.span key={i} variants={charVariant} aria-hidden="true">
+          {char === " " ? "\u00A0" : char}
+        </motion.span>
+      ))}
+    </motion.span>
   );
 }
 
@@ -39,7 +98,7 @@ export default function Masthead() {
 
       {/* Byline: last update — current standing — section — price */}
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 px-6 py-3 text-center font-mono text-[10px] tracking-[0.2em] text-muted sm:text-[11px]">
-        <span>{masthead.lastUpdated.toUpperCase()}</span>
+        <AnimatedDate />
         <Dot />
         <span>{masthead.position.toUpperCase()}</span>
         <Dot />

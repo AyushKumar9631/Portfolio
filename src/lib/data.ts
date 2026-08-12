@@ -20,8 +20,9 @@ export const profile = {
 export const masthead = {
   edition: "The Investigation Edition",
   subhead: "The Professional Record of a B.Tech Grad",
-  /** Update this whenever you make a real update to the site. */
-  lastUpdated: "Monday, 10 August 2026",
+  // lastUpdated removed — Masthead.tsx now shows today's actual date,
+  // computed live and animated in on each load instead of this being
+  // a manually-updated string.
   /** Your current year/standing — shown in the masthead byline row. */
   position: "B.Tech 4th Year",
   section: "Selected Works & Notes",
