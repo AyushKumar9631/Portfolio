@@ -1,7 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { AnimatePresence, LayoutGroup, MotionConfig, motion } from "framer-motion";
+import { LayoutGroup, MotionConfig } from "framer-motion";
 
 /**
  * Wraps the app in a single MotionConfig so every whileInView / animate
@@ -18,38 +17,25 @@ import { AnimatePresence, LayoutGroup, MotionConfig, motion } from "framer-motio
  * layout.tsx) because layout.tsx exports `metadata`, which requires a
  * Server Component.
  *
- * `LayoutGroup` + `AnimatePresence` (keyed on the pathname) live here too,
- * on purpose: this component is rendered by the root layout, which Next
- * never remounts on navigation, so the group survives route changes. That
- * lets the shared `layoutId` on an exhibit's photo (Work.tsx's thumbnail
- * and CaseFile.tsx's hero image) morph into each other across the
- * `/` <-> `/case-files/[slug]` navigation instead of just swapping — in
- * both directions, including "Back to the evidence". `mode="popLayout"`
- * pulls the exiting page out of flow immediately so the incoming page can
- * lay out in its final position right away, which is what lets the photo's
- * FLIP animation target the right end position instead of a stale one.
+ * `LayoutGroup` lives here (rendered by the root layout, which Next never
+ * remounts on navigation) so it persists across route changes. That's
+ * what lets the shared `layoutId` on an exhibit's photo (Work.tsx's
+ * thumbnail and CaseFile.tsx's hero image) morph into each other across
+ * the `/` <-> `/case-files/[slug]` navigation instead of just swapping —
+ * in both directions, including "Back to the evidence". No page-level
+ * transition wrapper here on purpose: Framer Motion picks up the shared
+ * layoutId and animates it on its own the moment Next swaps the route's
+ * page tree, so the rest of the page just swaps instantly and only the
+ * photo itself visibly moves.
  */
 export default function MotionProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
   return (
     <MotionConfig reducedMotion="user">
-      <LayoutGroup>
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: "easeInOut" }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </LayoutGroup>
+      <LayoutGroup>{children}</LayoutGroup>
     </MotionConfig>
   );
 }

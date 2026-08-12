@@ -6,9 +6,11 @@ import { motion, type Variants } from "framer-motion";
 import { profile, type Project } from "@/lib/data";
 import { hostFromUrl } from "@/lib/exhibits";
 
-/** Fades + slides a single element in on mount — used for the stack of
- * header elements (eyebrow, headline, dek, byline) so they settle in one
- * after another instead of popping in all at once. */
+/** Fades a single element in on mount (no slide — the case-file page's
+ * only "movement" on open/close is the shared exhibit photo morphing via
+ * its layoutId; everything else should just appear) — used for the stack
+ * of header elements (eyebrow, headline, dek, byline) so they settle in
+ * one after another instead of popping in all at once. */
 function RevealOnMount({
   children,
   delay = 0,
@@ -18,9 +20,9 @@ function RevealOnMount({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut", delay }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut", delay }}
     >
       {children}
     </motion.div>
@@ -89,13 +91,12 @@ export default function CaseFile({
         </RevealOnMount>
       </header>
 
-      {/* Hero photograph */}
-      <motion.figure
-        className="mx-auto mt-7 max-w-6xl px-6"
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
-      >
+      {/* Hero photograph. Plain <figure> now, not a motion component — the
+          shared layoutId on the image below already does the only
+          animation this region needs (morphing in from/out to its
+          thumbnail in the grid); a separate fade/slide on the figure
+          around it would just fight that motion and read as a "roll". */}
+      <figure className="mx-auto mt-7 max-w-6xl px-6">
         <div className="relative border border-ink/25 bg-bg p-2 pb-0 shadow-[0_2px_14px_rgba(22,20,15,0.14)]">
           <span
             aria-hidden="true"
@@ -140,7 +141,7 @@ export default function CaseFile({
             </span>
           </figcaption>
         </div>
-      </motion.figure>
+      </figure>
 
       {/* Article + sidebar */}
       <section className="py-12">
