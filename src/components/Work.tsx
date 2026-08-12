@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Phone } from "lucide-react";
 import { projects, type Project } from "@/lib/data";
@@ -70,6 +71,7 @@ function ThumbnailFrame({
   stampLabel,
   screenshot,
   alt,
+  layoutId,
 }: {
   exhibitLabel: string;
   caption: string;
@@ -78,6 +80,10 @@ function ThumbnailFrame({
   stampLabel: string;
   screenshot?: string;
   alt: string;
+  /** Shared with the matching hero image on the case-file page (see
+   * CaseFile.tsx) so framer-motion morphs this thumbnail into that hero
+   * photo — and back again — instead of the two just swapping instantly. */
+  layoutId?: string;
 }) {
   return (
     <div className="relative border border-ink/25 bg-bg p-2 pb-0 shadow-[0_2px_14px_rgba(22,20,15,0.14)]">
@@ -85,7 +91,9 @@ function ThumbnailFrame({
         aria-hidden="true"
         className="absolute -top-2 left-1/2 z-[1] h-4 w-16 -translate-x-1/2 -rotate-2 border border-ink/10 bg-bg-elevated/75"
       />
-      <div
+      <motion.div
+        layoutId={layoutId}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className={`relative overflow-hidden border border-ink/40 bg-bg-elevated/50 ${heightClass} flex items-center justify-center`}
       >
         {screenshot ? (
@@ -117,7 +125,7 @@ function ThumbnailFrame({
         >
           {stampLabel}
         </span>
-      </div>
+      </motion.div>
       <div className="flex items-center justify-between gap-3 px-1 py-1.5 font-mono text-[11px] tracking-[0.02em] text-muted">
         <span className="relative shrink-0 font-bold uppercase text-ink">
           {exhibitLabel}
@@ -128,6 +136,7 @@ function ThumbnailFrame({
             href={captionHref}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
             className="relative z-20 truncate underline-offset-2 hover:underline"
           >
             {caption}
@@ -161,6 +170,7 @@ function CaseFileButton({ label, slug }: { label: string; slug: string }) {
   return (
     <Link
       href={`/case-files/${slug}`}
+      onClick={(e) => e.stopPropagation()}
       className="group/link relative z-20 inline-flex items-center gap-1.5 border-b-[1.5px] border-accent-2 pb-0.5 font-mono text-xs font-bold uppercase tracking-[0.08em] text-accent-2 transition-colors hover:text-ink hover:border-ink"
     >
       {label}
@@ -172,13 +182,15 @@ function CaseFileButton({ label, slug }: { label: string; slug: string }) {
 }
 
 function FeaturedExhibit({ project }: { project: Project }) {
+  const router = useRouter();
   return (
     <motion.article
       variants={fadeUp}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.3 }}
-      className="group relative flex flex-col items-stretch gap-8 border-b border-ink/25 py-7 transition-colors hover:bg-bg-elevated/40 lg:flex-row"
+      onClick={() => router.push(`/case-files/${project.slug}`)}
+      className="group relative flex cursor-pointer flex-col items-stretch gap-8 border-b border-ink/25 py-7 transition-colors hover:bg-bg-elevated/40 lg:flex-row"
     >
       <div className="w-full self-start lg:w-[46%] lg:flex-none">
         <ThumbnailFrame
@@ -189,6 +201,7 @@ function FeaturedExhibit({ project }: { project: Project }) {
           stampLabel={project.kind === "internship" ? "Internship" : "Personal"}
           screenshot={project.screenshot}
           alt={project.name}
+          layoutId={`exhibit-photo-${project.slug}`}
         />
       </div>
 
@@ -216,6 +229,7 @@ function FeaturedExhibit({ project }: { project: Project }) {
             {project.phone && (
               <a
                 href={`tel:${project.phone}`}
+                onClick={(e) => e.stopPropagation()}
                 className="relative z-20 inline-flex items-center gap-2 border border-accent px-3 py-1.5 font-mono text-xs tracking-wide text-accent transition-colors hover:bg-accent hover:text-bg"
               >
                 <Phone size={14} aria-hidden="true" />
@@ -231,10 +245,12 @@ function FeaturedExhibit({ project }: { project: Project }) {
 }
 
 function GridExhibit({ project, letter }: { project: Project; letter: string }) {
+  const router = useRouter();
   return (
     <motion.article
       variants={fadeUp}
-      className="group relative flex flex-col border-t border-ink/25 py-[26px] pl-4 pr-0 transition-colors hover:bg-bg-elevated/40 sm:border-r sm:border-ink/25 sm:pr-[26px] sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-child(2n)]:pr-0 lg:border-r lg:border-ink/25 lg:pr-[26px] lg:[&:nth-child(2n)]:border-r lg:[&:nth-child(2n)]:pr-[26px] lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-child(3n)]:pr-0"
+      onClick={() => router.push(`/case-files/${project.slug}`)}
+      className="group relative flex cursor-pointer flex-col border-t border-ink/25 py-[26px] pl-4 pr-0 transition-colors hover:bg-bg-elevated/40 sm:border-r sm:border-ink/25 sm:pr-[26px] sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-child(2n)]:pr-0 lg:border-r lg:border-ink/25 lg:pr-[26px] lg:[&:nth-child(2n)]:border-r lg:[&:nth-child(2n)]:pr-[26px] lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-child(3n)]:pr-0"
     >
       <span className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-accent-2">
         Exhibit {letter}
@@ -255,6 +271,7 @@ function GridExhibit({ project, letter }: { project: Project; letter: string }) 
           stampLabel={project.kind === "internship" ? "Internship" : "Personal"}
           screenshot={project.screenshot}
           alt={project.name}
+          layoutId={`exhibit-photo-${project.slug}`}
         />
       </div>
 
@@ -270,6 +287,7 @@ function GridExhibit({ project, letter }: { project: Project; letter: string }) 
           {project.phone && (
             <a
               href={`tel:${project.phone}`}
+              onClick={(e) => e.stopPropagation()}
               className="relative z-20 inline-flex items-center gap-2 border border-accent px-2.5 py-1 font-mono text-[11px] tracking-wide text-accent transition-colors hover:bg-accent hover:text-bg"
             >
               <Phone size={12} aria-hidden="true" />

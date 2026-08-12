@@ -24,6 +24,34 @@ type IntroScreenProps = {
 const STAMP_DURATION_MS = 650;
 const EXIT_DURATION_MS = 500;
 
+// Once the visitor has traced the name (or hit skip) this tab session, the
+// intro shouldn't play again — most importantly when they leave a case
+// file via "Back to the evidence" and land back on "/": that's a fresh
+// mount of this component (Next remounts the page segment on navigation,
+// it doesn't keep IntroScreen's state around), so without this flag it
+// would replay the whole newspaper-loading sequence instead of just
+// showing the homepage. sessionStorage (not localStorage) so it still
+// plays once for a genuinely new visit/tab, just not on every back-nav.
+const INTRO_SEEN_KEY = "intro-seen";
+
+function hasSeenIntro() {
+  if (typeof window === "undefined") return false;
+  try {
+    return sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markIntroSeen() {
+  try {
+    sessionStorage.setItem(INTRO_SEEN_KEY, "1");
+  } catch {
+    // Storage unavailable (private mode, disabled, etc.) — the intro will
+    // just replay on the next mount, which is a harmless fallback.
+  }
+}
+
 // How many words the background texture needs scales with viewport AREA
 // (more columns AND more height on a big monitor), not with a fixed count.
 // A fixed 6x repeat of the ~1,000-word list was enough for a laptop screen
@@ -258,7 +286,12 @@ const FillerBlock = forwardRef<
 });
 
 export default function IntroScreen({ onComplete }: IntroScreenProps) {
-  const [visible, setVisible] = useState(true);
+  // Lazy initializer only runs client-side on mount (never during SSR, and
+  // client-side route navigations — the case only relevant here — never
+  // hydrate against server markup anyway), so reading sessionStorage here
+  // can't cause a hydration mismatch the way seeding it into computeRepeat
+  // below would.
+  const [visible, setVisible] = useState(() => !hasSeenIntro());
   const [revealing, setRevealing] = useState(false);
   const [repeat, setRepeat] = useState(SSR_SAFE_REPEAT);
   const revealingRef = useRef(false);
@@ -370,6 +403,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
 
   useEffect(() => {
     if (visible) return;
+    markIntroSeen();
     const t = setTimeout(() => onComplete?.(), EXIT_DURATION_MS);
     return () => clearTimeout(t);
   }, [visible, onComplete]);

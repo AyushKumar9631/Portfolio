@@ -101,7 +101,11 @@ export default function CaseFile({
             aria-hidden="true"
             className="absolute -top-2 left-1/2 z-[1] h-4 w-16 -translate-x-1/2 -rotate-2 border border-ink/10 bg-bg-elevated/75"
           />
-          <div className="relative aspect-[2/1] w-full overflow-hidden border border-ink/40 bg-bg-elevated/50">
+          <motion.div
+            layoutId={`exhibit-photo-${project.slug}`}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="relative aspect-[2/1] w-full overflow-hidden border border-ink/40 bg-bg-elevated/50"
+          >
             {project.screenshot ? (
               <Image
                 src={project.screenshot}
@@ -124,7 +128,7 @@ export default function CaseFile({
             >
               {kindLabel}
             </span>
-          </div>
+          </motion.div>
           <figcaption className="flex items-center justify-between gap-3 px-1 py-1.5 font-mono text-[12px] tracking-[0.02em] text-muted">
             <span className="shrink-0 font-bold uppercase text-ink">
               Exhibit {exhibitLabel}
