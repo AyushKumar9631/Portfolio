@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Phone } from "lucide-react";
 import { projects, type Project } from "@/lib/data";
@@ -66,12 +67,16 @@ function ThumbnailFrame({
   captionHref,
   heightClass,
   stampLabel,
+  screenshot,
+  alt,
 }: {
   exhibitLabel: string;
   caption: string;
   captionHref?: string;
   heightClass: string;
   stampLabel: string;
+  screenshot?: string;
+  alt: string;
 }) {
   return (
     <div className="relative border border-ink/25 bg-bg p-2 pb-0 shadow-[0_2px_14px_rgba(22,20,15,0.14)]">
@@ -82,9 +87,19 @@ function ThumbnailFrame({
       <div
         className={`relative overflow-hidden border border-ink/40 bg-bg-elevated/50 ${heightClass} flex items-center justify-center`}
       >
-        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted/70">
-          Screenshot pending
-        </span>
+        {screenshot ? (
+          <Image
+            src={screenshot}
+            alt={alt}
+            fill
+            sizes="(max-width: 1024px) 100vw, 540px"
+            className="object-cover object-top grayscale contrast-[1.04] mix-blend-multiply transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+          />
+        ) : (
+          <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted/70">
+            Screenshot pending
+          </span>
+        )}
         <span
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-60"
@@ -171,6 +186,8 @@ function FeaturedExhibit({ project }: { project: Project }) {
           captionHref={project.href}
           heightClass="aspect-video lg:aspect-auto lg:h-[272px]"
           stampLabel={project.kind === "internship" ? "Internship" : "Personal"}
+          screenshot={project.screenshot}
+          alt={project.name}
         />
       </div>
 
@@ -235,6 +252,8 @@ function GridExhibit({ project, letter }: { project: Project; letter: string }) 
           captionHref={project.href}
           heightClass="h-[176px]"
           stampLabel={project.kind === "internship" ? "Internship" : "Personal"}
+          screenshot={project.screenshot}
+          alt={project.name}
         />
       </div>
 

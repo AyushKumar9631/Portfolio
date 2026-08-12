@@ -74,6 +74,9 @@ export type Project = {
    * one) and the "Internship"/"Personal" hover stamp on its thumbnail in
    * Work.tsx. Add new projects with whichever of these fits. */
   kind: "internship" | "personal";
+  /** Path under /public, e.g. "/images/vaidyascribe.png". Omit to show
+   * the "Screenshot pending" placeholder instead. */
+  screenshot?: string;
 };
 
 export const projects: Project[] = [
@@ -88,6 +91,7 @@ export const projects: Project[] = [
     stack: ["Next.js", "TypeScript", "Supabase", "Groq Whisper", "Qwen3-32B", "FHIR R4", "PWA"],
     href: "https://vaidyascribe.vercel.app",
     kind: "personal",
+    screenshot: "/images/Vaidyascribe.png",
   },
   {
     id: "02",
@@ -100,6 +104,7 @@ export const projects: Project[] = [
     stack: ["Python", "PyTorch", "Gymnasium", "FastAPI", "Gradio", "HuggingFace Spaces"],
     href: "https://huggingface.co/spaces/Ayush9631/Emergent_society",
     kind: "personal",
+    screenshot: "/images/DRO.png",
   },
   {
     id: "03",
@@ -112,6 +117,7 @@ export const projects: Project[] = [
     stack: ["TensorFlow.js", "Keras", "Python", "JavaScript"],
     href: "https://image-recognizer-delta.vercel.app",
     kind: "personal",
+    screenshot: "/images/NeuralVision.png",
   },
   {
     id: "04",
@@ -124,6 +130,7 @@ export const projects: Project[] = [
     stack: ["React", "TanStack Start", "TypeScript", "Supabase", "Cloudflare Workers", "ElevenLabs", "Twilio", "Plivo"],
     phone: "+918035016969",
     kind: "internship",
+    screenshot: "/images/Sehita.png",
   },
 ];
 
