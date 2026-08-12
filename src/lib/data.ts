@@ -179,6 +179,7 @@ export const projects: Project[] = [
     slug: "sehita",
     tag: "Internship",
     name: "Sehita",
+    href: "https://voiceai.jilohealth.com/",
     org: "Jilo Health Cosmos",
     period: "Jun — Aug 2026",
     summary:

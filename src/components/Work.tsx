@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLayoutEffect } from "react";
 import { motion } from "framer-motion";
 import { Phone } from "lucide-react";
 import { projects, type Project } from "@/lib/data";
@@ -301,7 +302,34 @@ function GridExhibit({ project, letter }: { project: Project; letter: string }) 
   );
 }
 
+/** Case-file back links navigate to "/#work" with `scroll={false}` (see
+ * CaseFile.tsx) so Next's own hash-scroll never runs — that default landed
+ * correctly but noticeably late (well after the page-fade had already
+ * settled), which read as a second, unwanted scroll animation stacked on
+ * top of the shared exhibit-photo morph. Per MotionProvider's design, the
+ * photo morph should be the only thing that visibly moves, so this jumps
+ * straight to #work the instant the grid mounts — before paint, and with
+ * `scroll-behavior: smooth` (globals.css) forced off just for this jump so
+ * it can't animate. Only fires on a fresh mount of Work with "#work"
+ * already in the URL, i.e. exactly the "landed here via back-navigation"
+ * case; normal in-page anchor clicks (Nav, Hero CTA) never remount this
+ * component, so they're untouched and keep their smooth scroll. */
+function useInstantHashRestore() {
+  useLayoutEffect(() => {
+    if (typeof window === "undefined" || window.location.hash !== "#work") return;
+    const el = document.getElementById("work");
+    if (!el) return;
+    const html = document.documentElement;
+    const prevBehavior = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+    el.scrollIntoView({ block: "start" });
+    html.style.scrollBehavior = prevBehavior;
+  }, []);
+}
+
 export default function Work() {
+  useInstantHashRestore();
+
   // Exhibit A is whichever project is internship work; everything else
   // (personal projects) fills out the grid in declared order.
   const featured = projects.find((p) => p.kind === "internship") ?? projects[0];

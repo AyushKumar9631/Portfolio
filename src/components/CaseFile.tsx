@@ -54,6 +54,7 @@ export default function CaseFile({
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
           <Link
             href="/#work"
+            scroll={false}
             className="font-bold text-ink transition-colors hover:text-accent-2"
           >
             ← Back to the evidence
@@ -218,6 +219,7 @@ export default function CaseFile({
           <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t-4 border-ink pt-5">
             <Link
               href="/#work"
+              scroll={false}
               className="inline-flex items-center gap-2.5 border-2 border-ink px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink hover:text-bg"
             >
               ← Back to the evidence
