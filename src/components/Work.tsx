@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Phone } from "lucide-react";
 import { projects, type Project } from "@/lib/data";
@@ -154,19 +155,19 @@ function TagPills({ stack }: { stack: string[] }) {
   );
 }
 
-/** "Open case file" -> deep-dive page for this project. Not built yet, so
- * this is intentionally inert for now (no href, no route). */
-function CaseFileButton({ label }: { label: string }) {
+/** "Open case file" -> deep-dive page for this project, at
+ * /case-files/[slug] (see src/app/case-files/[slug]/page.tsx). */
+function CaseFileButton({ label, slug }: { label: string; slug: string }) {
   return (
-    <button
-      type="button"
-      className="group/link inline-flex items-center gap-1.5 border-b-[1.5px] border-accent-2 pb-0.5 font-mono text-xs font-bold uppercase tracking-[0.08em] text-accent-2"
+    <Link
+      href={`/case-files/${slug}`}
+      className="group/link relative z-20 inline-flex items-center gap-1.5 border-b-[1.5px] border-accent-2 pb-0.5 font-mono text-xs font-bold uppercase tracking-[0.08em] text-accent-2 transition-colors hover:text-ink hover:border-ink"
     >
       {label}
       <span className="transition-transform duration-150 group-hover/link:translate-x-1">
         →
       </span>
-    </button>
+    </Link>
   );
 }
 
@@ -221,7 +222,7 @@ function FeaturedExhibit({ project }: { project: Project }) {
                 Call: {formatIndianPhone(project.phone)}
               </a>
             )}
-            <CaseFileButton label="Open case file" />
+            <CaseFileButton label="Open case file" slug={project.slug} />
           </div>
         </div>
       </div>
@@ -275,7 +276,7 @@ function GridExhibit({ project, letter }: { project: Project; letter: string }) 
               Call
             </a>
           )}
-          <CaseFileButton label="Open case file" />
+          <CaseFileButton label="Open case file" slug={project.slug} />
         </div>
       </div>
     </motion.article>
