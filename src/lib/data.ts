@@ -70,6 +70,10 @@ export type Project = {
   href?: string;
   /** E.164 phone number, e.g. "+918035016969" — renders a "Call" CTA on the card. */
   phone?: string;
+  /** Drives both which project is featured as Exhibit A (the internship
+   * one) and the "Internship"/"Personal" hover stamp on its thumbnail in
+   * Work.tsx. Add new projects with whichever of these fits. */
+  kind: "internship" | "personal";
 };
 
 export const projects: Project[] = [
@@ -83,6 +87,7 @@ export const projects: Project[] = [
       "An ambient AI clinical scribe for Indian healthcare — transcribes a doctor's consultation with Groq Whisper, extracts ten clinical entity types with Qwen3-32B, and generates an editable SOAP note plus a standards-compliant FHIR R4 bundle in under five seconds. Nothing is saved until the doctor reviews and confirms.",
     stack: ["Next.js", "TypeScript", "Supabase", "Groq Whisper", "Qwen3-32B", "FHIR R4", "PWA"],
     href: "https://vaidyascribe.vercel.app",
+    kind: "personal",
   },
   {
     id: "02",
@@ -94,6 +99,7 @@ export const projects: Project[] = [
       "A multi-agent reinforcement-learning testbed simulating humanitarian disaster response — eight AI agents cooperate and compete over scarce aid supplies across three escalating mission tiers (supply retrieval, hub distribution, crisis coordination), trained with REINFORCE/PyTorch and deployed as an OpenEnv-compliant API on HuggingFace Spaces with a live Gradio UI.",
     stack: ["Python", "PyTorch", "Gymnasium", "FastAPI", "Gradio", "HuggingFace Spaces"],
     href: "https://huggingface.co/spaces/Ayush9631/Emergent_society",
+    kind: "personal",
   },
   {
     id: "03",
@@ -105,6 +111,7 @@ export const projects: Project[] = [
       "Two hand-trained deep learning models — a CNN for cat/dog image classification and a dense network for MNIST handwritten digit recognition — served entirely client-side via TensorFlow.js, so inference runs in-browser with zero server round-trips and no image data ever leaving the device.",
     stack: ["TensorFlow.js", "Keras", "Python", "JavaScript"],
     href: "https://image-recognizer-delta.vercel.app",
+    kind: "personal",
   },
   {
     id: "04",
@@ -116,6 +123,7 @@ export const projects: Project[] = [
       "A Hindi-language voice AI receptionist for Indian clinics and hospitals — answers every inbound patient call and routes it across seven conversation types (enquiries to red-flag escalation), runs outbound campaigns (screening invites, OPD follow-ups, newborn-vaccination reminders), and reschedules callbacks on request with the full prior conversation loaded. Built as part of a 5-person engineering team.",
     stack: ["React", "TanStack Start", "TypeScript", "Supabase", "Cloudflare Workers", "ElevenLabs", "Twilio", "Plivo"],
     phone: "+918035016969",
+    kind: "internship",
   },
 ];
 

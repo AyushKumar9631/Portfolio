@@ -65,11 +65,13 @@ function ThumbnailFrame({
   caption,
   captionHref,
   heightClass,
+  stampLabel,
 }: {
   exhibitLabel: string;
   caption: string;
   captionHref?: string;
   heightClass: string;
+  stampLabel: string;
 }) {
   return (
     <div className="relative border border-ink/25 bg-bg p-2 pb-0 shadow-[0_2px_14px_rgba(22,20,15,0.14)]">
@@ -97,7 +99,7 @@ function ThumbnailFrame({
           aria-hidden="true"
           className="pointer-events-none absolute right-2.5 top-2.5 rotate-[8deg] scale-150 border-[3px] border-accent-2 bg-bg/85 px-2.5 py-1 font-mono text-[11px] font-black uppercase tracking-[0.18em] text-accent-2 opacity-0 transition-all duration-200 ease-out group-hover:-rotate-[8deg] group-hover:scale-100 group-hover:opacity-100"
         >
-          Confirmed
+          {stampLabel}
         </span>
       </div>
       <div className="flex items-center justify-between gap-3 px-1 py-1.5 font-mono text-[11px] tracking-[0.02em] text-muted">
@@ -168,6 +170,7 @@ function FeaturedExhibit({ project }: { project: Project }) {
           caption={project.href ? `recovered from ${hostFromUrl(project.href)}` : `recovered from ${project.org}`}
           captionHref={project.href}
           heightClass="aspect-video lg:aspect-auto lg:h-[272px]"
+          stampLabel={project.kind === "internship" ? "Internship" : "Personal"}
         />
       </div>
 
@@ -231,6 +234,7 @@ function GridExhibit({ project, letter }: { project: Project; letter: string }) 
           caption={project.href ? `recovered from ${hostFromUrl(project.href)}` : `recovered from ${project.org}`}
           captionHref={project.href}
           heightClass="h-[176px]"
+          stampLabel={project.kind === "internship" ? "Internship" : "Personal"}
         />
       </div>
 
@@ -260,12 +264,10 @@ function GridExhibit({ project, letter }: { project: Project; letter: string }) 
 }
 
 export default function Work() {
-  const featured = projects.find((p) => p.tag === "Flagship") ?? projects[0];
+  // Exhibit A is whichever project is internship work; everything else
+  // (personal projects) fills out the grid in declared order.
+  const featured = projects.find((p) => p.kind === "internship") ?? projects[0];
   const rest = projects.filter((p) => p !== featured);
-  // Exhibit B and D swapped per request — first and last grid slots trade places.
-  if (rest.length > 1) {
-    [rest[0], rest[rest.length - 1]] = [rest[rest.length - 1], rest[0]];
-  }
   const lastLetter = EXHIBIT_LETTERS[rest.length] ?? "?";
 
   return (
