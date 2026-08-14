@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { stack, type StackItem } from "@/lib/data";
+import DailyLog from "@/components/DailyLog";
 
 // "Finding" stamp text + whether this entry gets the highlighted (accent)
 // stamp treatment vs. the neutral ink one. Content values (entry.detail,
@@ -95,6 +96,8 @@ export default function Stack() {
         <p className="mt-3 text-left font-mono text-[11px] font-medium tracking-[0.04em] text-muted sm:text-right">
           Findings are illustrative — what he reaches for day to day, not a ranking.
         </p>
+
+        <DailyLog />
       </div>
     </section>
   );
