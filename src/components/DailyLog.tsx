@@ -5,8 +5,13 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 
-// One row per day in Supabase (`daily_log`, see supabase.sql). The UI below
-// transposes this: each topic becomes a table row, each day becomes a
+// How many days show at once. No horizontal scroll — this many day columns
+// must fit the section width, so raise it and cells get proportionally
+// narrower (still square), lower it and they get wider.
+const VISIBLE_DAYS = 25;
+
+// One row per day in Supabase (`daily_log`, see supabase/daily_log.sql). The
+// UI transposes this: each topic becomes a table row, each day becomes a
 // column — rows and columns swapped from how the data is stored.
 type DailyLogRow = {
   log_date: string; // "YYYY-MM-DD"
@@ -19,17 +24,42 @@ type DailyLogRow = {
 
 type TopicKey = Exclude<keyof DailyLogRow, "log_date">;
 
-const TOPICS: { key: TopicKey; label: string }[] = [
-  { key: "web_dev", label: "Web Dev — Active Development" },
-  { key: "leetcode_potd", label: "LeetCode — Problem of the Day" },
-  { key: "gfg_potd", label: "GfG — Problem of the Day" },
-  { key: "dbms", label: "DBMS — Under Review" },
-  { key: "ml_learning", label: "ML — Study Session" },
+const TOPICS: { key: TopicKey; label: string; title: string }[] = [
+  { key: "web_dev", label: "Web Dev", title: "Web development — active build/ship time" },
+  { key: "leetcode_potd", label: "LeetCode POTD", title: "LeetCode — problem of the day" },
+  { key: "gfg_potd", label: "GfG POTD", title: "GeeksforGeeks — problem of the day" },
+  { key: "dbms", label: "DBMS", title: "DBMS — concept review" },
+  { key: "ml_learning", label: "ML", title: "Machine learning — study session" },
 ];
 
-function formatDay(dateStr: string) {
+// Grid track template shared by the header row and every topic row so their
+// columns line up. Label column shrinks a little on narrow screens; day
+// columns split the rest evenly and stay square via aspect-square below.
+const GRID_TEMPLATE = `clamp(88px, 20vw, 168px) repeat(${VISIBLE_DAYS}, 1fr)`;
+
+function toISODate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function addDays(dateStr: string, days: number) {
   const d = new Date(`${dateStr}T00:00:00`);
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+  d.setDate(d.getDate() + days);
+  return toISODate(d);
+}
+
+function dayNumber(dateStr: string) {
+  return new Date(`${dateStr}T00:00:00`).getDate();
+}
+
+function fullDateLabel(dateStr: string) {
+  return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export default function DailyLog() {
@@ -39,7 +69,7 @@ export default function DailyLog() {
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    async function ensureAndLoad() {
       if (!supabase || !isSupabaseConfigured) {
         setError(
           "Not connected yet — add your Supabase project URL and anon key to .env.local.",
@@ -48,11 +78,47 @@ export default function DailyLog() {
         return;
       }
 
+      const today = toISODate(new Date());
+
+      // Backfill: find the most recently logged day and create every day
+      // between it and today (covers days that went unlogged), all
+      // defaulting to false. First-ever run seeds the last VISIBLE_DAYS
+      // days instead, since there's no prior row to count from.
+      try {
+        const { data: latest } = await supabase
+          .from("daily_log")
+          .select("log_date")
+          .order("log_date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const start = latest
+          ? addDays(latest.log_date as string, 1)
+          : addDays(today, -(VISIBLE_DAYS - 1));
+
+        if (start <= today) {
+          const missing: { log_date: string }[] = [];
+          for (let cursor = start; cursor <= today; cursor = addDays(cursor, 1)) {
+            missing.push({ log_date: cursor });
+          }
+          if (missing.length > 0) {
+            await supabase
+              .from("daily_log")
+              .upsert(missing, { onConflict: "log_date", ignoreDuplicates: true });
+          }
+        }
+      } catch {
+        // Backfill is best-effort — if it fails (e.g. the insert policy
+        // isn't set up yet) fall through and just show whatever exists.
+      }
+
+      if (cancelled) return;
+
       const { data, error: fetchError } = await supabase
         .from("daily_log")
         .select("log_date, web_dev, leetcode_potd, gfg_potd, dbms, ml_learning")
         .order("log_date", { ascending: false })
-        .limit(31);
+        .limit(VISIBLE_DAYS);
 
       if (cancelled) return;
 
@@ -66,7 +132,7 @@ export default function DailyLog() {
       setRows(((data as DailyLogRow[]) ?? []).slice().reverse());
     }
 
-    load();
+    ensureAndLoad();
     return () => {
       cancelled = true;
     };
@@ -90,12 +156,12 @@ export default function DailyLog() {
           </h3>
         </div>
         <span className="whitespace-nowrap font-mono text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-          Presence logged across the last 31 days
+          Presence logged across the last {VISIBLE_DAYS} days
         </span>
       </motion.div>
       <div className="h-1 bg-ink" />
 
-      <div className="mt-6 overflow-x-auto border-2 border-ink">
+      <div className="mt-6 border-2 border-ink">
         {rows === null && (
           <p className="px-4 py-6 font-mono text-xs uppercase tracking-[0.12em] text-muted">
             Loading the docket…
@@ -109,55 +175,63 @@ export default function DailyLog() {
         )}
 
         {rows !== null && rows.length > 0 && (
-          <table className="w-full border-separate border-spacing-0 font-mono text-[11px]">
-            <thead>
-              <tr className="bg-ink text-bg">
-                <th className="sticky left-0 z-10 min-w-[200px] border-r border-bg/25 bg-ink px-4 py-[9px] text-left font-bold uppercase tracking-[0.12em]">
-                  Activity
-                </th>
-                {rows.map((row) => (
-                  <th
-                    key={row.log_date}
-                    className="min-w-[34px] border-l border-bg/25 px-1 py-[9px] text-center font-bold uppercase tracking-[0.08em]"
-                  >
-                    {formatDay(row.log_date)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {TOPICS.map((topic, i) => (
-                <tr key={topic.key} className="group">
-                  <td
-                    className={`sticky left-0 z-10 bg-bg px-4 py-2.5 text-left font-display text-[15px] tracking-normal text-ink transition-colors group-hover:bg-bg-elevated ${
-                      i === 0 ? "" : "border-t border-ink/25"
-                    } border-r border-ink/25`}
-                  >
-                    {topic.label}
-                  </td>
-                  {rows.map((row) => (
-                    <td
-                      key={row.log_date}
-                      className={`border-l border-ink/10 px-1 py-2.5 text-center text-muted transition-colors group-hover:bg-bg-elevated ${
-                        i === 0 ? "" : "border-t border-ink/25"
-                      }`}
-                    >
-                      {row[topic.key] ? (
-                        <Check
-                          size={13}
-                          strokeWidth={3}
-                          className="mx-auto text-accent-2"
-                          aria-label="Logged"
-                        />
-                      ) : (
-                        <span aria-hidden="true">&nbsp;</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
+          <div role="table" aria-label="Daily activity log" className="font-mono">
+            <div
+              role="row"
+              className="grid bg-ink text-bg"
+              style={{ gridTemplateColumns: GRID_TEMPLATE }}
+            >
+              <div
+                role="columnheader"
+                className="border-r border-bg/25 px-3 py-2 text-left text-[10px] font-bold uppercase tracking-[0.12em]"
+              >
+                Activity
+              </div>
+              {rows.map((row) => (
+                <div
+                  key={row.log_date}
+                  role="columnheader"
+                  title={fullDateLabel(row.log_date)}
+                  className="flex items-center justify-center border-l border-bg/25 px-0.5 py-2 text-[9px] font-bold"
+                >
+                  {dayNumber(row.log_date)}
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {TOPICS.map((topic, i) => (
+              <div
+                key={topic.key}
+                role="row"
+                className={`group grid transition-colors hover:bg-bg-elevated ${
+                  i === 0 ? "" : "border-t border-ink/25"
+                }`}
+                style={{ gridTemplateColumns: GRID_TEMPLATE }}
+              >
+                <div
+                  role="rowheader"
+                  title={topic.title}
+                  className="flex items-center truncate border-r border-ink/25 bg-bg px-3 py-2 font-display text-[13px] tracking-normal text-ink transition-colors group-hover:bg-bg-elevated sm:text-[15px]"
+                >
+                  {topic.label}
+                </div>
+                {rows.map((row) => (
+                  <div
+                    key={row.log_date}
+                    role="cell"
+                    aria-label={`${topic.label} on ${fullDateLabel(row.log_date)}: ${
+                      row[topic.key] ? "logged" : "not logged"
+                    }`}
+                    className="aspect-square flex items-center justify-center border-l border-ink/10"
+                  >
+                    {row[topic.key] && (
+                      <Check size={12} strokeWidth={3} className="text-accent-2" aria-hidden="true" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
