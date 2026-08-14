@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { stack, type StackItem } from "@/lib/data";
 import DailyLog from "@/components/DailyLog";
+import TicTacToe from "@/components/TicTacToe";
 
 // "Finding" stamp text + whether this entry gets the highlighted (accent)
 // stamp treatment vs. the neutral ink one. Content values (entry.detail,
@@ -15,8 +17,23 @@ const statusMeta: Record<StackItem["status"], { label: string; primary: boolean 
 };
 
 export default function Stack() {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/status")
+      .then((r) => r.json())
+      .then((d) => setIsAdmin(Boolean(d?.isAdmin)))
+      .catch(() => {});
+  }, []);
+
   return (
-    <section id="stack" className="paper-grain px-5 py-14 sm:px-[30px] sm:py-[76px]">
+    <section id="stack" className="paper-grain relative px-5 py-14 sm:px-[30px] sm:py-[76px]">
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-[calc((100%-1180px)/2)] items-center justify-center 2xl:flex">
+        <div className="pointer-events-auto">
+          <TicTacToe onUnlock={() => setIsAdmin(true)} />
+        </div>
+      </div>
+
       <div className="mx-auto max-w-[1180px]">
         <div className="mb-[30px]">
           <motion.div
@@ -97,7 +114,7 @@ export default function Stack() {
           Findings are illustrative — what he reaches for day to day, not a ranking.
         </p>
 
-        <DailyLog />
+        <DailyLog isAdmin={isAdmin} />
       </div>
     </section>
   );

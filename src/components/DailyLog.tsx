@@ -62,7 +62,7 @@ function fullDateLabel(dateStr: string) {
   });
 }
 
-export default function DailyLog() {
+export default function DailyLog({ isAdmin = false }: { isAdmin?: boolean }) {
   const [rows, setRows] = useState<DailyLogRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -137,6 +137,31 @@ export default function DailyLog() {
       cancelled = true;
     };
   }, []);
+
+  async function toggleCell(logDate: string, topic: TopicKey) {
+    if (!isAdmin) return;
+
+    setRows((prev) =>
+      prev ? prev.map((r) => (r.log_date === logDate ? { ...r, [topic]: !r[topic] } : r)) : prev,
+    );
+
+    try {
+      const res = await fetch("/api/admin/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ log_date: logDate, topic }),
+      });
+      if (!res.ok) throw new Error("toggle failed");
+      const data = await res.json();
+      setRows((prev) =>
+        prev ? prev.map((r) => (r.log_date === logDate ? { ...r, [topic]: data.value } : r)) : prev,
+      );
+    } catch {
+      setRows((prev) =>
+        prev ? prev.map((r) => (r.log_date === logDate ? { ...r, [topic]: !r[topic] } : r)) : prev,
+      );
+    }
+  }
 
   return (
     <div className="mt-16">
@@ -219,13 +244,32 @@ export default function DailyLog() {
                   <div
                     key={row.log_date}
                     role="cell"
-                    aria-label={`${topic.label} on ${fullDateLabel(row.log_date)}: ${
-                      row[topic.key] ? "logged" : "not logged"
-                    }`}
+                    aria-label={
+                      isAdmin
+                        ? undefined
+                        : `${topic.label} on ${fullDateLabel(row.log_date)}: ${
+                            row[topic.key] ? "logged" : "not logged"
+                          }`
+                    }
                     className="aspect-square flex items-center justify-center border-l border-ink/10"
                   >
-                    {row[topic.key] && (
-                      <Check size={12} strokeWidth={3} className="text-accent-2" aria-hidden="true" />
+                    {isAdmin ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleCell(row.log_date, topic.key)}
+                        aria-label={`Toggle ${topic.label} on ${fullDateLabel(row.log_date)}: currently ${
+                          row[topic.key] ? "logged" : "not logged"
+                        }`}
+                        className="flex h-full w-full cursor-pointer items-center justify-center bg-transparent transition-colors hover:bg-ink/10"
+                      >
+                        {row[topic.key] && (
+                          <Check size={12} strokeWidth={3} className="text-accent-2" aria-hidden="true" />
+                        )}
+                      </button>
+                    ) : (
+                      row[topic.key] && (
+                        <Check size={12} strokeWidth={3} className="text-accent-2" aria-hidden="true" />
+                      )
                     )}
                   </div>
                 ))}
