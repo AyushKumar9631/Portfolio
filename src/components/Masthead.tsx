@@ -76,7 +76,7 @@ export default function Masthead() {
   return (
     <div className="bg-bg">
       {/* Top strip: location — edition name — established year */}
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-1 px-6 pt-5 text-center font-mono text-[10px] tracking-[0.25em] text-muted sm:flex-row sm:justify-between sm:text-[11px]">
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-1 px-6 pt-5 text-center font-mono text-xs tracking-widest text-muted sm:flex-row sm:justify-between">
         <span>{profile.location.toUpperCase()}</span>
         <span className="text-ink">{masthead.edition.toUpperCase()}</span>
         <span>EST. {year}</span>
@@ -89,7 +89,7 @@ export default function Masthead() {
         <h1 className="font-display text-5xl leading-none tracking-tight text-ink sm:text-6xl md:text-7xl">
           {profile.name}
         </h1>
-        <p className="mt-4 font-mono text-[11px] font-semibold uppercase tracking-[0.3em] text-ink sm:text-xs">
+        <p className="mt-4 font-mono text-xs uppercase tracking-widest text-ink">
           {masthead.subhead}
         </p>
       </div>
@@ -97,7 +97,7 @@ export default function Masthead() {
       <div className="mx-auto max-w-6xl border-t-2 border-black" />
 
       {/* Byline: last update — current standing — section — price */}
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 px-6 py-3 text-center font-mono text-[10px] tracking-[0.2em] text-muted sm:text-[11px]">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-6 py-3 text-center font-mono text-xs tracking-widest text-muted">
         <AnimatedDate />
         <Dot />
         <span>{masthead.position.toUpperCase()}</span>
