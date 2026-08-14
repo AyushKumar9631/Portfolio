@@ -214,11 +214,13 @@ export const stack: StackItem[] = [
   { code: "PY", name: "Python", detail: "Primary tool", status: "daily" },
   { code: "RCT", name: "React", detail: "Primary tool", status: "daily" },
   { code: "NEXT", name: "Next.js", detail: "Comfortable", status: "comfortable" },
-  { code: "NODE", name: "Node.js / Express", detail: "Comfortable", status: "comfortable" },
-  { code: "TF", name: "TensorFlow / Keras", detail: "Comfortable", status: "comfortable" },
-  { code: "TORCH", name: "PyTorch", detail: "Comfortable", status: "comfortable" },
+  { code: "NODE", name: "Node.js / Express", detail: "Beginner", status: "learning" },
+  { code: "TF", name: "TensorFlow / Keras", detail: "Beginner", status: "learning" },
+  { code: "TORCH", name: "PyTorch", detail: "Beginner", status: "learning" },
   { code: "MDB", name: "MongoDB", detail: "Comfortable", status: "comfortable" },
   { code: "GIT", name: "Git / GitHub", detail: "Daily", status: "daily" },
+  { code: "SUPA", name: "Supabase", detail: "Primary tool", status: "daily" },
+  { code: "JAVA", name: "DSA", detail: "Primary tool", status: "daily" },
 ];
 
 export type TimelineEntry = {
