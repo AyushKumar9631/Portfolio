@@ -3,96 +3,98 @@
 import { motion } from "framer-motion";
 import { stack, type StackItem } from "@/lib/data";
 
-const container = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
-  },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: "easeOut" as const },
-  },
-};
-
-const statusMeta: Record<
-  StackItem["status"],
-  { label: string; dot: string }
-> = {
-  daily: { label: "Daily use", dot: "bg-accent" },
-  comfortable: { label: "Comfortable", dot: "bg-accent-2" },
-  learning: { label: "Learning", dot: "bg-muted" },
+// "Finding" stamp text + whether this entry gets the highlighted (accent)
+// stamp treatment vs. the neutral ink one. Content values (entry.detail,
+// entry.code, entry.name) are untouched — this only maps the existing
+// `status` field to the descriptor shown in the "Detected" column.
+const statusMeta: Record<StackItem["status"], { label: string; primary: boolean }> = {
+  daily: { label: "Daily use", primary: true },
+  comfortable: { label: "Comfortable", primary: false },
+  learning: { label: "Learning", primary: false },
 };
 
 export default function Stack() {
   return (
-    <section id="stack" className="paper-grain px-6 py-24 sm:py-32">
-      <div className="mx-auto max-w-4xl">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 0.5, ease: "easeOut" as const }}
-          className="mb-12 flex flex-wrap items-end justify-between gap-4 border-b border-line-strong pb-4"
-        >
-          <div>
-            <span className="font-mono text-xs tracking-widest text-accent-2">
-              READOUT
+    <section id="stack" className="paper-grain px-5 py-14 sm:px-[30px] sm:py-[76px]">
+      <div className="mx-auto max-w-[1180px]">
+        <div className="mb-[30px]">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.6 }}
+            transition={{ duration: 0.5, ease: "easeOut" as const }}
+            className="flex flex-wrap items-baseline justify-between gap-5 pb-2.5"
+          >
+            <div>
+              <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-ink">
+                Forensics
+              </span>
+              <h2 className="mt-1.5 font-display text-[clamp(30px,4vw,46px)] font-normal leading-[1.02] tracking-[-0.015em] text-ink">
+                The Lab Report
+              </h2>
+            </div>
+            <span className="whitespace-nowrap font-mono text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+              Substances detected on the subject, as of this edition
             </span>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-ink sm:text-4xl">
-              Stack
-            </h2>
-          </div>
-          <div className="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[10px] tracking-widest text-muted">
-            {(Object.keys(statusMeta) as StackItem["status"][]).map(
-              (status) => (
-                <span key={status} className="flex items-center gap-1.5">
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${statusMeta[status].dot}`}
-                  />
-                  {statusMeta[status].label.toUpperCase()}
-                </span>
-              ),
-            )}
-          </div>
-        </motion.div>
+          </motion.div>
+          <div className="h-1 bg-ink" />
+        </div>
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
-          className="corner-brackets divide-y divide-line border border-line bg-bg"
-        >
-          {stack.map((entry) => (
-            <motion.div
-              key={entry.code}
-              variants={item}
-              className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-4 transition-colors hover:bg-bg-elevated sm:flex-nowrap"
-            >
-              <span
-                className={`h-2 w-2 shrink-0 rounded-full ${statusMeta[entry.status].dot}`}
-                aria-hidden="true"
-              />
-              <span className="w-14 shrink-0 font-mono text-xs tracking-widest text-muted">
-                {entry.code}
-              </span>
-              <span className="font-display text-base font-semibold text-ink sm:w-48 sm:shrink-0">
-                {entry.name}
-              </span>
-              <span className="text-sm text-muted sm:flex-1">
-                {entry.detail}
-              </span>
-              <span className="ml-auto shrink-0 font-mono text-[10px] tracking-widest text-muted sm:ml-0">
-                {statusMeta[entry.status].label.toUpperCase()}
-              </span>
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="border-2 border-ink">
+          <div className="hidden grid-cols-[2.4fr_1fr_1fr_1.3fr] bg-ink font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-bg sm:grid">
+            <span className="border-r border-bg/25 px-4 py-[9px]">Substance</span>
+            <span className="border-r border-bg/25 px-4 py-[9px]">Code</span>
+            <span className="border-r border-bg/25 px-4 py-[9px]">Detected</span>
+            <span className="px-4 py-[9px] text-right">Finding</span>
+          </div>
+
+          {stack.map((entry, i) => {
+            const meta = statusMeta[entry.status];
+            const rotate = meta.primary
+              ? "-rotate-[1.5deg]"
+              : i % 2 === 0
+                ? "rotate-[1deg]"
+                : "-rotate-[1deg]";
+            return (
+              <motion.div
+                key={entry.code}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.4, ease: "easeOut" as const, delay: i * 0.04 }}
+                className="grid gap-2 border-t border-ink/25 px-3.5 py-3.5 font-mono transition-colors first:border-t-0 hover:bg-bg-elevated sm:grid-cols-[2.4fr_1fr_1fr_1.3fr] sm:items-center sm:gap-0 sm:px-0 sm:py-0"
+              >
+                <span className="flex min-w-0 items-baseline justify-between gap-3 sm:block sm:border-r sm:border-ink/25 sm:px-4 sm:py-[11px]">
+                  <span className="truncate font-display !text-[19px] tracking-normal sm:tracking-[-0.01em]">
+                    {entry.name}
+                  </span>
+                  <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-muted sm:hidden">
+                    {entry.code}
+                  </span>
+                </span>
+                <span className="hidden border-r border-ink/25 px-4 py-[11px] text-[13px] text-muted sm:block">
+                  {entry.code}
+                </span>
+                <span className="text-[12px] uppercase tracking-[0.08em] text-muted sm:border-r sm:border-ink/25 sm:px-4 sm:py-[11px] sm:text-[13px] sm:normal-case sm:tracking-normal sm:text-ink">
+                  {meta.label}
+                </span>
+                <span className="sm:px-4 sm:py-[9px] sm:text-right">
+                  <span
+                    className={`inline-block border-2 px-2 py-0.5 font-mono text-[10px] font-black uppercase tracking-[0.14em] ${rotate} ${
+                      meta.primary ? "border-accent-2 text-accent-2" : "border-ink/60 text-ink"
+                    }`}
+                  >
+                    {entry.detail}
+                  </span>
+                </span>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <p className="mt-3 text-left font-mono text-[11px] font-medium tracking-[0.04em] text-muted sm:text-right">
+          Findings are illustrative — what he reaches for day to day, not a ranking.
+        </p>
       </div>
     </section>
   );
