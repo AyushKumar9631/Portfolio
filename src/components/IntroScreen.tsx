@@ -286,15 +286,27 @@ const FillerBlock = forwardRef<
 });
 
 export default function IntroScreen({ onComplete }: IntroScreenProps) {
-  // Lazy initializer only runs client-side on mount (never during SSR, and
-  // client-side route navigations — the case only relevant here — never
-  // hydrate against server markup anyway), so reading sessionStorage here
-  // can't cause a hydration mismatch the way seeding it into computeRepeat
-  // below would.
-  const [visible, setVisible] = useState(() => !hasSeenIntro());
+  // Must start out matching what the server rendered (always "visible",
+  // since the server has no sessionStorage) or hydration itself mismatches
+  // — React diffs the client's *first* render against the server HTML
+  // before any effect runs, so branching on `hasSeenIntro()` here (which
+  // can read a client-side sessionStorage the server never saw) throws
+  // "Hydration failed" any time the flag is already set: not just on an
+  // in-app back-navigation, but on an ordinary page refresh too, since
+  // sessionStorage survives a reload within the same tab. The correction
+  // for repeat visitors happens in the useLayoutEffect below instead —
+  // that runs after hydration has already committed, so it's just a normal
+  // state update, not part of the hydration check, and useLayoutEffect
+  // specifically (not useEffect) fires before the browser paints, so
+  // there's no visible flash of the intro before it's hidden again.
+  const [visible, setVisible] = useState(true);
   const [revealing, setRevealing] = useState(false);
   const [repeat, setRepeat] = useState(SSR_SAFE_REPEAT);
   const revealingRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (hasSeenIntro()) setVisible(false);
+  }, []);
 
   const cursorX = useMotionValue(-200);
   const cursorY = useMotionValue(-200);
