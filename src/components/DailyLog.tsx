@@ -171,7 +171,7 @@ export default function DailyLog({
   }
 
   return (
-    <div className="mt-12">
+    <div className="mt-8">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -179,18 +179,16 @@ export default function DailyLog({
         transition={{ duration: 0.5, ease: "easeOut" as const }}
         className="flex flex-wrap items-baseline justify-between gap-5 pb-2.5"
       >
-        <div className="flex items-end gap-8">
-          <div>
-            <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-ink">
-              Field Notes
-            </span>
-            <h3 className="mt-1.5 font-display text-[clamp(24px,3vw,34px)] font-normal leading-[1.05] tracking-[-0.01em] text-ink">
-              The Daily Docket
-            </h3>
-          </div>
-          <div className="hidden sm:block">
-            <TicTacToe onUnlock={onAdminUnlock} />
-          </div>
+        <div>
+          <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-ink">
+            Field Notes
+          </span>
+          <h3 className="mt-1.5 font-display text-[clamp(24px,3vw,34px)] font-normal leading-[1.05] tracking-[-0.01em] text-ink">
+            The Daily Docket
+          </h3>
+        </div>
+        <div className="hidden flex-1 justify-center self-end sm:flex">
+          <TicTacToe onUnlock={onAdminUnlock} />
         </div>
         <span className="whitespace-nowrap font-mono text-xs font-semibold uppercase tracking-[0.12em] text-muted">
           Presence logged across the last {VISIBLE_DAYS} days
