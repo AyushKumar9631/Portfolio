@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 const SEQUENCE = process.env.ADMIN_SEQUENCE ?? "9631";
 const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET;
 const COOKIE_NAME = "admin_session";
-const MAX_AGE = 60 * 60 * 12; // 12h
+const MAX_AGE = 60 * 5; // 5 min
 
 export async function POST(req: NextRequest) {
   if (!SESSION_SECRET) {

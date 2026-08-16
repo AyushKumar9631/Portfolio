@@ -75,27 +75,6 @@
     color: var(--bg);
   }
 
-  .engraved-panel {
-    background: var(--bg-elevated);
-    box-shadow:
-      inset 2px 2px 5px rgba(36, 31, 26, 0.32),
-      inset -1px -1px 2px rgba(244, 238, 225, 0.7);
-  }
-
-  .engraved-cell {
-    box-shadow:
-      inset 1.5px 1.5px 3px rgba(36, 31, 26, 0.28),
-      inset -1px -1px 2px rgba(244, 238, 225, 0.65);
-  }
-  .engraved-cell:hover {
-    background: rgba(36, 31, 26, 0.05);
-  }
-
-  .engraved-mark {
-    filter: drop-shadow(0.5px 0.5px 0 rgba(244, 238, 225, 0.7))
-      drop-shadow(-0.5px -0.5px 0 rgba(36, 31, 26, 0.45));
-  }
-
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

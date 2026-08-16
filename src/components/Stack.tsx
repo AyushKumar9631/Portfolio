@@ -27,13 +27,7 @@ export default function Stack() {
   }, []);
 
   return (
-    <section id="stack" className="paper-grain relative px-5 py-14 sm:px-[30px] sm:py-[76px]">
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-[calc((100%-1180px)/2)] items-center justify-center 2xl:flex">
-        <div className="pointer-events-auto">
-          <TicTacToe onUnlock={() => setIsAdmin(true)} />
-        </div>
-      </div>
-
+    <section id="stack" className="paper-grain px-5 py-14 sm:px-[30px] sm:py-[76px]">
       <div className="mx-auto max-w-[1180px]">
         <div className="mb-[30px]">
           <motion.div
@@ -110,9 +104,16 @@ export default function Stack() {
           })}
         </div>
 
-        <p className="mt-3 text-left font-mono text-[11px] font-medium tracking-[0.04em] text-muted sm:text-right">
-          Findings are illustrative — what he reaches for day to day, not a ranking.
-        </p>
+        <div className="relative">
+          <p className="mt-3 text-left font-mono text-[11px] font-medium tracking-[0.04em] text-muted sm:text-right">
+            Findings are illustrative — what he reaches for day to day, not a ranking.
+          </p>
+          <div className="pointer-events-none absolute left-0 top-2 hidden sm:block">
+            <div className="pointer-events-auto">
+              <TicTacToe onUnlock={() => setIsAdmin(true)} />
+            </div>
+          </div>
+        </div>
 
         <DailyLog isAdmin={isAdmin} />
       </div>

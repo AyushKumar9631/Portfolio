@@ -19,6 +19,8 @@ const WIN_LINES = [
 // Keypad numbering, 1-9 top-left to bottom-right — index = number - 1.
 const PASSCODE = "9631";
 
+const CELL = 24; // px, one board square in the 72x72 viewBox
+
 function calcWinner(board: Cell[]): Cell {
   for (const [a, b, c] of WIN_LINES) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
@@ -43,6 +45,40 @@ function botMove(board: Cell[]): number {
   const corners = [0, 2, 6, 8].filter((i) => board[i] === null);
   if (corners.length) return corners[Math.floor(Math.random() * corners.length)];
   return empty[Math.floor(Math.random() * empty.length)];
+}
+
+// Center point of cell i, for drawing marks and hit-testing.
+function cellCenter(i: number) {
+  const col = i % 3;
+  const row = Math.floor(i / 3);
+  return { cx: col * CELL + CELL / 2, cy: row * CELL + CELL / 2 };
+}
+
+// Two crossing, faintly curved ink strokes — a hand-drawn X, not a glyph.
+function XMark({ cx, cy }: { cx: number; cy: number }) {
+  return (
+    <g className="stroke-ink/80" strokeWidth={2.2} strokeLinecap="round" fill="none">
+      <path d={`M ${cx - 6.5} ${cy - 6.5} Q ${cx - 1} ${cy - 0.5} ${cx + 6.5} ${cy + 6.5}`} />
+      <path d={`M ${cx - 6.5} ${cy + 6.5} Q ${cx - 1} ${cy + 0.5} ${cx + 6.5} ${cy - 6.5}`} />
+    </g>
+  );
+}
+
+// A slightly imperfect, tilted ellipse — a hand-drawn O — in the bronze
+// accent so it reads as a distinct "ink" from the X.
+function OMark({ cx, cy }: { cx: number; cy: number }) {
+  return (
+    <ellipse
+      cx={cx}
+      cy={cy}
+      rx={7}
+      ry={6.2}
+      transform={`rotate(-8 ${cx} ${cy})`}
+      className="stroke-accent-2/85"
+      strokeWidth={2.1}
+      fill="none"
+    />
+  );
 }
 
 export default function TicTacToe({ onUnlock }: { onUnlock?: () => void }) {
@@ -131,22 +167,54 @@ export default function TicTacToe({ onUnlock }: { onUnlock?: () => void }) {
     status === "won" ? "You win" : status === "lost" ? "Bot wins" : status === "draw" ? "Draw" : "Your move";
 
   return (
-    <div className="select-none text-center">
-      <div className="engraved-panel inline-grid grid-cols-3 gap-[3px] p-[3px]">
-        {board.map((c, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => handleClick(i)}
-            aria-label={`Cell ${i + 1}${c ? `, ${c}` : ", empty"}`}
-            className="engraved-cell flex h-9 w-9 cursor-pointer items-center justify-center bg-transparent font-display text-lg leading-none text-ink/70"
-          >
-            {c === "X" && <span className="engraved-mark">×</span>}
-            {c === "O" && <span className="engraved-mark">○</span>}
-          </button>
-        ))}
-      </div>
-      <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-muted">
+    <div className="inline-block -rotate-[3deg] select-none text-center">
+      <svg
+        viewBox="0 0 72 72"
+        width={72}
+        height={72}
+        className="overflow-visible"
+        role="group"
+        aria-label="Tic-tac-toe board"
+      >
+        {/* Four hand-drawn lines only — no outer frame. */}
+        <g className="stroke-ink/45" strokeWidth={1.6} strokeLinecap="round" fill="none">
+          <path d="M 24 1 Q 22.5 24 24 71" />
+          <path d="M 48 2 Q 49.5 26 48 71" />
+          <path d="M 1 24 Q 24 22.5 71 24" />
+          <path d="M 2 48 Q 26 49.5 71 48" />
+        </g>
+
+        {board.map((c, i) => {
+          const { cx, cy } = cellCenter(i);
+          const col = i % 3;
+          const row = Math.floor(i / 3);
+          return (
+            <g key={i}>
+              <rect
+                x={col * CELL}
+                y={row * CELL}
+                width={CELL}
+                height={CELL}
+                fill="transparent"
+                className="cursor-pointer hover:fill-ink/[0.04]"
+                tabIndex={0}
+                role="button"
+                aria-label={`Cell ${i + 1}${c ? `, ${c}` : ", empty"}`}
+                onClick={() => handleClick(i)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleClick(i);
+                  }
+                }}
+              />
+              {c === "X" && <XMark cx={cx} cy={cy} />}
+              {c === "O" && <OMark cx={cx} cy={cy} />}
+            </g>
+          );
+        })}
+      </svg>
+      <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.14em] text-muted">
         {label}
         {unlocked && <span className="ml-1 text-accent-2">•</span>}
       </p>
