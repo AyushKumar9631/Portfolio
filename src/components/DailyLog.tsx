@@ -175,7 +175,7 @@ export default function DailyLog({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.6 }}
         transition={{ duration: 0.5, ease: "easeOut" as const }}
-        className="flex flex-wrap items-baseline justify-between gap-5 pb-2.5"
+        className="flex flex-wrap items-end justify-between gap-5 pb-2.5"
       >
         <div>
           <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-ink">
