@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseAdminConfigured } from "@/lib/supabaseAdmin";
 
-const TOPICS = ["web_dev", "leetcode_potd", "gfg_potd", "dbms", "ml_learning"] as const;
+const TOPICS = ["web_dev", "leetcode_potd", "gfg_potd", "dbms"] as const;
 type Topic = (typeof TOPICS)[number];
 
 function isTopic(v: unknown): v is Topic {

@@ -20,7 +20,6 @@ type DailyLogRow = {
   leetcode_potd: boolean;
   gfg_potd: boolean;
   dbms: boolean;
-  ml_learning: boolean;
 };
 
 type TopicKey = Exclude<keyof DailyLogRow, "log_date">;
@@ -30,7 +29,6 @@ const TOPICS: { key: TopicKey; label: string; title: string }[] = [
   { key: "leetcode_potd", label: "LeetCode POTD", title: "LeetCode — problem of the day" },
   { key: "gfg_potd", label: "GfG POTD", title: "GeeksforGeeks — problem of the day" },
   { key: "dbms", label: "DBMS", title: "DBMS — concept review" },
-  { key: "ml_learning", label: "ML", title: "Machine learning — study session" },
 ];
 
 // Grid track template shared by the header row and every topic row so their
@@ -123,7 +121,7 @@ export default function DailyLog({
 
       const { data, error: fetchError } = await supabase
         .from("daily_log")
-        .select("log_date, web_dev, leetcode_potd, gfg_potd, dbms, ml_learning")
+        .select("log_date, web_dev, leetcode_potd, gfg_potd, dbms")
         .order("log_date", { ascending: false })
         .limit(VISIBLE_DAYS);
 
@@ -285,6 +283,27 @@ export default function DailyLog({
                 ))}
               </div>
             ))}
+
+            <div
+              role="row"
+              className="grid border-t border-ink/25"
+              style={{ gridTemplateColumns: GRID_TEMPLATE }}
+            >
+              <div
+                role="rowheader"
+                title="Machine learning — on pause for now"
+                className="flex items-center truncate border-r border-ink/25 bg-bg px-3 py-2 font-display text-[13px] tracking-normal text-ink sm:text-[15px]"
+              >
+                ML
+              </div>
+              <div
+                role="cell"
+                style={{ gridColumn: "2 / -1" }}
+                className="flex items-center justify-center px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted sm:text-[11px]"
+              >
+                Continuing soon ...
+              </div>
+            </div>
           </div>
         )}
       </div>
