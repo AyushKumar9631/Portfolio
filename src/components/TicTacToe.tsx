@@ -19,7 +19,7 @@ const WIN_LINES = [
 // Keypad numbering, 1-9 top-left to bottom-right — index = number - 1.
 const PASSCODE = "9631";
 
-const CELL = 24; // px, one board square in the 72x72 viewBox
+const CELL = 30; // px, one board square in the 90x90 viewBox
 
 function calcWinner(board: Cell[]): Cell {
   for (const [a, b, c] of WIN_LINES) {
@@ -57,9 +57,9 @@ function cellCenter(i: number) {
 // Two crossing, faintly curved ink strokes — a hand-drawn X, not a glyph.
 function XMark({ cx, cy }: { cx: number; cy: number }) {
   return (
-    <g className="stroke-ink/80" strokeWidth={2.2} strokeLinecap="round" fill="none">
-      <path d={`M ${cx - 6.5} ${cy - 6.5} Q ${cx - 1} ${cy - 0.5} ${cx + 6.5} ${cy + 6.5}`} />
-      <path d={`M ${cx - 6.5} ${cy + 6.5} Q ${cx - 1} ${cy + 0.5} ${cx + 6.5} ${cy - 6.5}`} />
+    <g className="stroke-ink/80" strokeWidth={2.4} strokeLinecap="round" fill="none">
+      <path d={`M ${cx - 8} ${cy - 8} Q ${cx - 1} ${cy - 0.5} ${cx + 8} ${cy + 8}`} />
+      <path d={`M ${cx - 8} ${cy + 8} Q ${cx - 1} ${cy + 0.5} ${cx + 8} ${cy - 8}`} />
     </g>
   );
 }
@@ -71,11 +71,11 @@ function OMark({ cx, cy }: { cx: number; cy: number }) {
     <ellipse
       cx={cx}
       cy={cy}
-      rx={7}
-      ry={6.2}
+      rx={8.75}
+      ry={7.75}
       transform={`rotate(-8 ${cx} ${cy})`}
       className="stroke-accent-2/85"
-      strokeWidth={2.1}
+      strokeWidth={2.3}
       fill="none"
     />
   );
@@ -169,19 +169,19 @@ export default function TicTacToe({ onUnlock }: { onUnlock?: () => void }) {
   return (
     <div className="inline-block -rotate-[3deg] select-none text-center">
       <svg
-        viewBox="0 0 72 72"
-        width={72}
-        height={72}
+        viewBox="0 0 90 90"
+        width={90}
+        height={90}
         className="overflow-visible"
         role="group"
         aria-label="Tic-tac-toe board"
       >
         {/* Four hand-drawn lines only — no outer frame. */}
-        <g className="stroke-ink/45" strokeWidth={1.6} strokeLinecap="round" fill="none">
-          <path d="M 24 1 Q 22.5 24 24 71" />
-          <path d="M 48 2 Q 49.5 26 48 71" />
-          <path d="M 1 24 Q 24 22.5 71 24" />
-          <path d="M 2 48 Q 26 49.5 71 48" />
+        <g className="stroke-ink/45" strokeWidth={1.8} strokeLinecap="round" fill="none">
+          <path d="M 30 1.3 Q 28.1 30 30 88.8" />
+          <path d="M 60 2.5 Q 61.9 32.5 60 88.8" />
+          <path d="M 1.3 30 Q 30 28.1 88.8 30" />
+          <path d="M 2.5 60 Q 32.5 61.9 88.8 60" />
         </g>
 
         {board.map((c, i) => {
