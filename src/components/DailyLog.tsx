@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabaseClient";
+import TicTacToe from "@/components/TicTacToe";
 
 // How many days show at once. No horizontal scroll — this many day columns
 // must fit the section width, so raise it and cells get proportionally
@@ -62,7 +63,13 @@ function fullDateLabel(dateStr: string) {
   });
 }
 
-export default function DailyLog({ isAdmin = false }: { isAdmin?: boolean }) {
+export default function DailyLog({
+  isAdmin = false,
+  onAdminUnlock,
+}: {
+  isAdmin?: boolean;
+  onAdminUnlock?: () => void;
+}) {
   const [rows, setRows] = useState<DailyLogRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -172,13 +179,18 @@ export default function DailyLog({ isAdmin = false }: { isAdmin?: boolean }) {
         transition={{ duration: 0.5, ease: "easeOut" as const }}
         className="flex flex-wrap items-baseline justify-between gap-5 pb-2.5"
       >
-        <div>
-          <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-ink">
-            Field Notes
-          </span>
-          <h3 className="mt-1.5 font-display text-[clamp(24px,3vw,34px)] font-normal leading-[1.05] tracking-[-0.01em] text-ink">
-            The Daily Docket
-          </h3>
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:block">
+            <TicTacToe onUnlock={onAdminUnlock} />
+          </div>
+          <div>
+            <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-ink">
+              Field Notes
+            </span>
+            <h3 className="mt-1.5 font-display text-[clamp(24px,3vw,34px)] font-normal leading-[1.05] tracking-[-0.01em] text-ink">
+              The Daily Docket
+            </h3>
+          </div>
         </div>
         <span className="whitespace-nowrap font-mono text-xs font-semibold uppercase tracking-[0.12em] text-muted">
           Presence logged across the last {VISIBLE_DAYS} days

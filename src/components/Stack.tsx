@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { stack, type StackItem } from "@/lib/data";
 import DailyLog from "@/components/DailyLog";
-import TicTacToe from "@/components/TicTacToe";
 
 // "Finding" stamp text + whether this entry gets the highlighted (accent)
 // stamp treatment vs. the neutral ink one. Content values (entry.detail,
@@ -104,18 +103,11 @@ export default function Stack() {
           })}
         </div>
 
-        <div className="relative">
-          <p className="mt-3 text-left font-mono text-[11px] font-medium tracking-[0.04em] text-muted sm:text-right">
-            Findings are illustrative — what he reaches for day to day, not a ranking.
-          </p>
-          <div className="pointer-events-none absolute left-0 top-2 hidden sm:block">
-            <div className="pointer-events-auto">
-              <TicTacToe onUnlock={() => setIsAdmin(true)} />
-            </div>
-          </div>
-        </div>
+        <p className="mt-3 text-left font-mono text-[11px] font-medium tracking-[0.04em] text-muted sm:text-right">
+          Findings are illustrative — what he reaches for day to day, not a ranking.
+        </p>
 
-        <DailyLog isAdmin={isAdmin} />
+        <DailyLog isAdmin={isAdmin} onAdminUnlock={() => setIsAdmin(true)} />
       </div>
     </section>
   );
