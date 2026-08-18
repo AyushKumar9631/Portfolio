@@ -81,7 +81,11 @@ function OMark({ cx, cy }: { cx: number; cy: number }) {
   );
 }
 
-export default function TicTacToe({ onUnlock }: { onUnlock?: () => void }) {
+export default function TicTacToe({
+  onUnlock,
+}: {
+  onUnlock?: (expiresAt: number | null) => void;
+}) {
   const [board, setBoard] = useState<Cell[]>(Array(9).fill(null));
   const [status, setStatus] = useState<Status>("playing");
   const [unlocked, setUnlocked] = useState(false);
@@ -115,8 +119,9 @@ export default function TicTacToe({ onUnlock }: { onUnlock?: () => void }) {
         body: JSON.stringify({ sequence: seq.current.split("").map(Number) }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => null);
         setUnlocked(true);
-        onUnlock?.();
+        onUnlock?.(typeof data?.expiresAt === "number" ? data.expiresAt : null);
       }
     } catch {
       // hidden control — fail silently, no error UI

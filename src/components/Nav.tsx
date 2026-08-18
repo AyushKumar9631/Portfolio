@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, Briefcase } from "lucide-react";
+import { Menu, X, Briefcase, Clock } from "lucide-react";
 import { profile } from "@/lib/data";
 import HireMeModal from "@/components/HireMeModal";
 
@@ -13,7 +13,20 @@ const links = [
   { href: "#contact", label: "Contact" },
 ];
 
-export default function Nav() {
+// mm:ss, for the admin session countdown.
+function formatCountdown(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+export default function Nav({
+  isAdmin = false,
+  secondsLeft = null,
+}: {
+  isAdmin?: boolean;
+  secondsLeft?: number | null;
+}) {
   const [open, setOpen] = useState(false);
   const [activeId, setActiveId] = useState("");
   const [hireMeOpen, setHireMeOpen] = useState(false);
@@ -49,13 +62,24 @@ export default function Nav() {
     <>
       <header className="sticky top-0 z-40 border-b-2 border-black bg-bg/80 backdrop-blur-sm">
         <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <a
-            href="#top"
-            className="font-mono text-sm tracking-widest text-ink"
-            onClick={() => setOpen(false)}
-          >
-            {profile.name.toUpperCase()}
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="#top"
+              className="font-mono text-sm tracking-widest text-ink"
+              onClick={() => setOpen(false)}
+            >
+              {profile.name.toUpperCase()}
+            </a>
+            {isAdmin && secondsLeft !== null && (
+              <span
+                title="Admin cache expires — resets automatically"
+                className="inline-flex items-center gap-1.5 border-2 border-accent-2 px-2 py-1 font-mono text-[11px] font-bold tabular-nums tracking-[0.06em] text-accent-2"
+              >
+                <Clock size={11} aria-hidden="true" />
+                {formatCountdown(secondsLeft)}
+              </span>
+            )}
+          </div>
 
           <div className="hidden items-center gap-8 sm:flex">
             <ul className="flex items-center gap-8 font-mono text-xs tracking-widest text-muted">

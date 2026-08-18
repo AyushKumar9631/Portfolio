@@ -66,7 +66,7 @@ export default function DailyLog({
   onAdminUnlock,
 }: {
   isAdmin?: boolean;
-  onAdminUnlock?: () => void;
+  onAdminUnlock?: (expiresAt: number | null) => void;
 }) {
   const [rows, setRows] = useState<DailyLogRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);

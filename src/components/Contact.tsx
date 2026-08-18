@@ -6,6 +6,7 @@ import { CheckCircle2, AlertCircle, Loader2, Mail } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons/BrandIcons";
 import { profile } from "@/lib/data";
 import { supabase, isSupabaseConfigured } from "@/lib/supabaseClient";
+import Inbox from "@/components/Inbox";
 
 type FormState = {
   name: string;
@@ -65,7 +66,7 @@ const wordReveal: Variants = {
 
 const headlineWords = ["Letters", "&", "Commissions"];
 
-export default function Contact() {
+export default function Contact({ isAdmin = false }: { isAdmin?: boolean }) {
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<Status>("idle");
@@ -129,6 +130,10 @@ export default function Contact() {
   return (
     <section id="contact" className="border-t-4 border-ink py-[76px]">
       <div className="mx-auto max-w-[1180px] px-5 sm:px-[30px]">
+        {isAdmin ? (
+          <Inbox />
+        ) : (
+        <>
         <div className="mb-[30px]">
           <motion.div
             initial="hidden"
@@ -399,6 +404,8 @@ export default function Contact() {
             </div>
           </div>
         </motion.div>
+        </>
+        )}
       </div>
     </section>
   );

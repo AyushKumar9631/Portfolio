@@ -9,7 +9,11 @@ import { NextRequest, NextResponse } from "next/server";
 const SEQUENCE = process.env.ADMIN_SEQUENCE ?? "9631";
 const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET;
 const COOKIE_NAME = "admin_session";
-const MAX_AGE = 60 * 5; // 5 min
+// Companion cookie — carries only a timestamp (no secret), so client
+// components can rebuild the "cache" countdown after a page refresh without
+// being able to forge or extend the real session above.
+const EXPIRY_COOKIE_NAME = "admin_session_expires";
+const MAX_AGE = 60 * 5; // 5 min — the admin session "cache" TTL
 
 export async function POST(req: NextRequest) {
   if (!SESSION_SECRET) {
@@ -23,9 +27,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 
-  const res = NextResponse.json({ ok: true });
+  const expiresAt = Date.now() + MAX_AGE * 1000;
+
+  const res = NextResponse.json({ ok: true, expiresAt });
   res.cookies.set(COOKIE_NAME, SESSION_SECRET, {
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: MAX_AGE,
+  });
+  res.cookies.set(EXPIRY_COOKIE_NAME, String(expiresAt), {
+    httpOnly: false,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",

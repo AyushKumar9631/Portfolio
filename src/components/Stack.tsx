@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { stack, type StackItem } from "@/lib/data";
 import DailyLog from "@/components/DailyLog";
@@ -15,16 +14,13 @@ const statusMeta: Record<StackItem["status"], { label: string; primary: boolean 
   learning: { label: "Learning", primary: false },
 };
 
-export default function Stack() {
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/admin/status")
-      .then((r) => r.json())
-      .then((d) => setIsAdmin(Boolean(d?.isAdmin)))
-      .catch(() => {});
-  }, []);
-
+export default function Stack({
+  isAdmin = false,
+  onAdminUnlock,
+}: {
+  isAdmin?: boolean;
+  onAdminUnlock?: (expiresAt: number | null) => void;
+}) {
   return (
     <section id="stack" className="paper-grain px-5 py-14 sm:px-[30px] sm:py-[76px]">
       <div className="mx-auto max-w-[1180px]">
@@ -107,7 +103,7 @@ export default function Stack() {
           Findings are illustrative — what he reaches for day to day, not a ranking.
         </p>
 
-        <DailyLog isAdmin={isAdmin} onAdminUnlock={() => setIsAdmin(true)} />
+        <DailyLog isAdmin={isAdmin} onAdminUnlock={onAdminUnlock} />
       </div>
     </section>
   );
