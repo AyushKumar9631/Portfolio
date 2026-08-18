@@ -35,6 +35,31 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${lora.variable} ${inter.variable} ${oswald.variable} antialiased`}>
+        {/* Global filter defs — currently powers the roughed-up edge on the
+            footer's "Case Closed" rubber-stamp (`[filter:url(#fm-rough)]`).
+            Zero-size and hidden from the a11y tree; SVG filters must live
+            in the DOM to be referenced by url(), so it's mounted once here
+            rather than per-component. */}
+        <svg width="0" height="0" className="absolute" aria-hidden="true">
+          <defs>
+            <filter id="fm-rough">
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.9"
+                numOctaves="2"
+                seed="4"
+                result="noise"
+              />
+              <feDisplacementMap
+                in="SourceGraphic"
+                in2="noise"
+                scale="2.5"
+                xChannelSelector="R"
+                yChannelSelector="G"
+              />
+            </filter>
+          </defs>
+        </svg>
         <MotionProvider>{children}</MotionProvider>
       </body>
     </html>

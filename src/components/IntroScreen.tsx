@@ -52,6 +52,18 @@ function markIntroSeen() {
   }
 }
 
+// Exposed so other components (the footer's "Reopen the case" button) can
+// clear the flag and reload to watch the newspaper-loading sequence again,
+// without duplicating the sessionStorage key string.
+export function resetIntroForReplay() {
+  try {
+    sessionStorage.removeItem(INTRO_SEEN_KEY);
+  } catch {
+    // Storage unavailable — nothing to reset, the button just won't do
+    // anything differently on click.
+  }
+}
+
 // How many words the background texture needs scales with viewport AREA
 // (more columns AND more height on a big monitor), not with a fixed count.
 // A fixed 6x repeat of the ~1,000-word list was enough for a laptop screen

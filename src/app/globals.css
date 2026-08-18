@@ -17,6 +17,8 @@
   --paper-warm: var(--bg-elevated);
   --ink-soft: var(--muted);
   --ink-faint: rgba(36, 31, 26, 0.42);
+  --stamp: var(--accent-2);
+  --stamp-bright: #e3b563;
 }
 
 @theme inline {
@@ -33,6 +35,8 @@
   --color-paper-warm: var(--paper-warm);
   --color-ink-soft: var(--ink-soft);
   --color-ink-faint: var(--ink-faint);
+  --color-stamp: var(--stamp);
+  --color-stamp-bright: var(--stamp-bright);
   --font-display: var(--font-lora);
   --font-mono: var(--font-inter);
   --font-body: var(--font-inter);
@@ -105,6 +109,29 @@
   }
   .link-pencil:hover::after,
   .link-pencil:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  /* Same pencil-underline hover, tuned for light text on the dark footer. */
+  .link-pencil-bright {
+    position: relative;
+    color: var(--paper);
+    text-decoration: none;
+  }
+  .link-pencil-bright::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    background: var(--paper);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .link-pencil-bright:hover::after,
+  .link-pencil-bright:focus-visible::after {
     transform: scaleX(1);
   }
 
