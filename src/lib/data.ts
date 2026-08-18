@@ -223,11 +223,36 @@ export const stack: StackItem[] = [
   { code: "JAVA", name: "DSA", detail: "Primary tool", status: "daily" },
 ];
 
+/** Powers the /career-log/[slug] detail page (LedgerEntry.tsx) — the
+ * career-log equivalent of ProjectDetail/CaseFile. */
+export type LedgerRecord = {
+  /** Italic dek shown under the headline. */
+  dek: string;
+  /** 3 body paragraphs. First one gets the drop cap. */
+  paragraphs: string[];
+  /** Pulled out as a centered blockquote partway through the article. */
+  pullQuote: string;
+  /** Headline figure shown in the record card, e.g. { value: "9.41", label: "CGPA / 10.0" }. */
+  stat: { value: string; label: string };
+  /** Shown as the "Standing" row in the sidebar spec panel. */
+  standing: string;
+};
+
 export type TimelineEntry = {
   period: string;
   role: string;
   org: string;
   detail: string;
+  /** URL-safe slug for /career-log/[slug]. Set together with `record`.
+   * Omit both if this entry should link to an existing case-file instead
+   * (see caseFileSlug). */
+  slug?: string;
+  /** Article content for the /career-log/[slug] page. Required when slug is set. */
+  record?: LedgerRecord;
+  /** If set, clicking this entry opens /case-files/[caseFileSlug] instead
+   * of a new ledger page — used for the internship, which already has a
+   * full case file under Work/Selected Works. Mutually exclusive with slug. */
+  caseFileSlug?: string;
 };
 
 export const timeline: TimelineEntry[] = [
@@ -236,25 +261,68 @@ export const timeline: TimelineEntry[] = [
     role: "B.Tech, Computer Science Engineering",
     org: "National Institute of Technology, Patna",
     detail:
-      "Current CGPA 9.41. Splitting coursework and personal projects between deep learning (PyTorch, TensorFlow) and full-stack web development (the MERN stack, Next.js).",
+      "Currently under observation at NIT Patna, CGPA holding at 9.41 — hours split between deep learning research and full-stack builds.",
+    slug: "nit-patna",
+    record: {
+      dek: "Admitted into Mechanical Engineering through JEE Mains, then transferred into Computer Science — the record picks up real momentum here.",
+      paragraphs: [
+        "Records show the subject entered the National Institute of Technology, Patna in 2023 — admitted through JEE Mains into Mechanical Engineering, before a branch transfer moved him into Computer Science Engineering, aligning the paper trail with what he'd actually been building in his spare time.",
+        "Since then the CGPA has held at 9.41, alongside a parallel file of technical competitions, a stint with the campus robotics club, and a couple of leadership roles along the way — including a combat robot entered into RoboWar that survived three burnt Arduinos and still walked away with third place.",
+        "A first-place finish at an IIT Patna hackathon sits in the same file. Graduation is projected for May 2027, assuming the current trajectory holds — which, going by the record so far, it has.",
+      ],
+      pullQuote:
+        "Three burnt Arduinos, a robot that failed on competition day, and still — third place. The best lessons rarely come from things going to plan.",
+      stat: { value: "9.41", label: "CGPA / 10.0" },
+      standing: "9.41 CGPA",
+    },
   },
   {
     period: "Jun — Aug 2026",
     role: "Software Engineering Intern",
     org: "Jilo Health Cosmos",
     detail:
-      "Worked on Sehita, a Hindi-language voice AI receptionist for Indian clinics — built as part of a 5-person engineering team.",
+      "Spotted for eight weeks at Jilo Health, embedded in a five-person team building Sehita, a Hindi-language voice AI receptionist for Indian clinics.",
+    // Already has a full write-up under Work — send clicks there instead
+    // of duplicating it into a second detail page.
+    caseFileSlug: "sehita",
   },
   {
     period: "2021",
-    role: "Senior Secondary (12th)",
-    org: "Central Board of Secondary Education (CBSE)",
-    detail: "Completed with 84.5%.",
+    role: "Senior Secondary (12th) · CBSE",
+    org: "Mithila Public School, Araria",
+    detail:
+      "Last confirmed sighting at Mithila Public School — boards cleared at 84.5%, most study hours logged elsewhere in parallel JEE prep.",
+    slug: "mithila-public-school",
+    record: {
+      dek: "Two years that ran alongside a parallel JEE preparation track and a pandemic — school attendance kept to the minimum required, boards cleared anyway.",
+      paragraphs: [
+        "Classes XI and XII were logged at Mithila Public School in Araria, Bihar, but the file shows most of the subject's actual hours went elsewhere — a coaching institute running in parallel, with school attendance kept right at the minimum required threshold.",
+        "COVID-19 compressed the timeline further, cutting into an already tight schedule. The CBSE Class XII boards were still cleared in 2021 with an 84.5% aggregate, Physical Education leading the subject scores at 93%.",
+        "Investigators note the period as more of a bridge than a destination — formal schooling as a checkpoint, while the real preparation, for engineering entrance, was happening in parallel.",
+      ],
+      pullQuote: "Grit is not talent. It is a decision, made daily.",
+      stat: { value: "84.5%", label: "CBSE Class XII" },
+      standing: "84.5% aggregate",
+    },
   },
   {
     period: "2019",
-    role: "Secondary (10th)",
-    org: "Indian Certificate of Secondary Education (ICSE)",
-    detail: "Completed with 92.2%.",
+    role: "Secondary (10th) · ICSE",
+    org: "Don Bosco Academy, Patna",
+    detail:
+      "First recorded appearance at Don Bosco Academy — boarder for five years, boards closed at 92.2%, with a second file open as a national-level carrom competitor.",
+    slug: "don-bosco-academy",
+    record: {
+      dek: "Five years as a boarder at Don Bosco Academy — the record shows strong marks, and an unexpected second file as a national-level carrom competitor.",
+      paragraphs: [
+        "Five years on file at Don Bosco Academy in Digha Ghat, Patna — the subject's first extended stretch away from home, boarding at Angelo Hostel through Classes VI to X.",
+        "The ICSE Class X boards closed the file in 2019 at 92.2% overall, Computer Applications topping the subject sheet at 97%. A separate, less expected entry appears in the same period: a carrom player good enough to represent the school at the national level, with a runner-up finish at an inter-school meet along the way.",
+        "Two names recur across the notes from this stretch — a principal who looked after every boarder like family, and a teacher who kept pushing past what seemed possible. Both left more of a mark on the file than any single mark sheet did.",
+      ],
+      pullQuote:
+        "The kind of guidance that lasts a lifetime — long after the subject stopped needing it.",
+      stat: { value: "92.2%", label: "ICSE Class X" },
+      standing: "92.2% aggregate",
+    },
   },
 ];
