@@ -9,7 +9,7 @@ export const profile = {
   summary:
     "Computer Science undergrad at NIT Patna (CGPA 9.41) who ships full projects, not just notebooks — from a multi-agent reinforcement-learning testbed for disaster response to a production clinical-scribe app built for real doctors. Comfortable moving between PyTorch/TensorFlow on the ML side and React/Next.js on the product side.",
   availability: "Open to internships, freelance & research collaborations",
-  email: "ayushkr1.ug23.cs@nitp.ac.in",
+  email: "marikayush@gmail.com",
   github: "https://github.com/AyushKumar9631",
   linkedin: "https://linkedin.com/in/ayush-kumar-nitp",
 };

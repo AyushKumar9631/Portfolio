@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Lora, Inter } from "next/font/google";
+import { Lora, Inter, Oswald } from "next/font/google";
 import MotionProvider from "@/components/MotionProvider";
 import "./globals.css";
 
@@ -15,6 +15,12 @@ const inter = Inter({
   weight: ["400", "500", "600"],
 });
 
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "Ayush Kumar — Full-Stack Developer & ML Engineer",
   description:
@@ -28,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${lora.variable} ${inter.variable} antialiased`}>
+      <body className={`${lora.variable} ${inter.variable} ${oswald.variable} antialiased`}>
         <MotionProvider>{children}</MotionProvider>
       </body>
     </html>

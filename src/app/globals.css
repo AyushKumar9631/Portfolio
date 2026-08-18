@@ -9,6 +9,14 @@
   --accent-2: #8a6d3b;
   --line: rgba(36, 31, 26, 0.12);
   --line-strong: rgba(36, 31, 26, 0.28);
+
+  /* Contact section — editorial "paper & ink" palette, aliased onto the
+     tokens above so there's one source of truth for the actual colors. */
+  --paper: var(--bg);
+  --paper-bright: #faf7ee;
+  --paper-warm: var(--bg-elevated);
+  --ink-soft: var(--muted);
+  --ink-faint: rgba(36, 31, 26, 0.42);
 }
 
 @theme inline {
@@ -20,9 +28,16 @@
   --color-accent-2: var(--accent-2);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-paper: var(--paper);
+  --color-paper-bright: var(--paper-bright);
+  --color-paper-warm: var(--paper-warm);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
   --font-display: var(--font-lora);
   --font-mono: var(--font-inter);
   --font-body: var(--font-inter);
+  --font-text: var(--font-inter);
+  --font-gothic: var(--font-oswald);
 }
 
 @layer base {
@@ -68,6 +83,29 @@
     right: -1px;
     border-bottom: 1.5px solid;
     border-right: 1.5px solid;
+  }
+
+  /* Pencil-underline hover effect for inline links in the contact card. */
+  .link-pencil {
+    position: relative;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .link-pencil::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .link-pencil:hover::after,
+  .link-pencil:focus-visible::after {
+    transform: scaleX(1);
   }
 
   ::selection {
