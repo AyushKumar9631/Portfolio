@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, FileText, Download, Mail, Loader2, ExternalLink, Briefcase } from "lucide-react";
 import {
-  credentialDocuments,
+  credentialGroups,
+  standaloneDocuments,
+  allCredentialDocuments,
   getDownloadUrl,
   getPreviewUrl,
   type CredentialDocument,
@@ -15,8 +17,52 @@ type HireMeModalProps = {
   onClose: () => void;
 };
 
+function DocButton({
+  doc,
+  active,
+  onSelect,
+}: {
+  doc: CredentialDocument;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={active}
+      className={`flex w-full items-start gap-2.5 border-b border-ink/15 px-5 py-3 text-left transition-colors sm:px-6 sm:py-3.5 ${
+        active ? "bg-ink text-paper" : "bg-transparent text-ink hover:bg-bg-elevated"
+      }`}
+    >
+      <FileText size={14} className="mt-0.5 flex-none" aria-hidden="true" />
+      <span className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[0.06em]">
+          <span className="min-w-0 truncate">{doc.title}</span>
+          {doc.tag && (
+            <span
+              className={`flex-none border px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[0.08em] ${
+                active ? "border-paper text-paper" : "border-accent-2 text-accent-2"
+              }`}
+            >
+              {doc.tag}
+            </span>
+          )}
+        </span>
+        <span
+          className={`font-mono text-[10px] font-normal normal-case tracking-normal ${
+            active ? "text-paper/70" : "text-ink-soft"
+          }`}
+        >
+          {doc.category} · {doc.period}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 export default function HireMeModal({ open, onClose }: HireMeModalProps) {
-  const [selectedId, setSelectedId] = useState<string>(credentialDocuments[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState<string>(allCredentialDocuments[0]?.id ?? "");
   const [previewLoading, setPreviewLoading] = useState(true);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -28,12 +74,12 @@ export default function HireMeModal({ open, onClose }: HireMeModalProps) {
   if (open !== wasOpen) {
     setWasOpen(open);
     if (open) {
-      setSelectedId(credentialDocuments[0]?.id ?? "");
+      setSelectedId(allCredentialDocuments[0]?.id ?? "");
       setPreviewLoading(true);
     }
   }
 
-  const selectedDoc: CredentialDocument | undefined = credentialDocuments.find(
+  const selectedDoc: CredentialDocument | undefined = allCredentialDocuments.find(
     (doc) => doc.id === selectedId,
   );
 
@@ -119,37 +165,43 @@ export default function HireMeModal({ open, onClose }: HireMeModalProps) {
 
             {/* Body: document list + preview */}
             <div className="flex flex-1 flex-col overflow-hidden sm:flex-row">
-              {/* Sidebar */}
-              <div className="flex flex-none gap-2 overflow-x-auto border-b-2 border-ink bg-paper-warm p-3 sm:w-[260px] sm:flex-col sm:gap-0 sm:overflow-x-visible sm:overflow-y-auto sm:border-b-0 sm:border-r-2 sm:p-0">
-                <div className="hidden shrink-0 px-6 pb-3 pt-5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-ink-soft sm:block">
-                  {credentialDocuments.length} on file
+              {/* Sidebar — vertical on every breakpoint; its own scroll
+                  region so a long document list never pushes the preview
+                  off-screen. Capped shorter on mobile, where it sits above
+                  the preview rather than beside it. */}
+              <div className="flex max-h-[38vh] flex-none flex-col overflow-y-auto border-b-2 border-ink bg-paper-warm sm:h-full sm:max-h-none sm:w-[280px] sm:border-b-0 sm:border-r-2">
+                <div className="flex-none px-5 pb-2 pt-4 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-ink-soft sm:px-6 sm:pt-5">
+                  {allCredentialDocuments.length} on file
                 </div>
-                {credentialDocuments.map((doc) => {
-                  const active = doc.id === selectedId;
-                  return (
-                    <button
-                      key={doc.id}
-                      type="button"
-                      onClick={() => selectDoc(doc.id)}
-                      aria-pressed={active}
-                      className={`group flex flex-none items-start gap-2.5 whitespace-nowrap border-2 border-ink px-3.5 py-2.5 text-left font-mono text-[11px] font-bold uppercase tracking-[0.08em] transition-colors sm:w-full sm:flex-none sm:whitespace-normal sm:border-0 sm:border-b sm:border-ink/20 sm:px-6 sm:py-4 sm:tracking-[0.06em] ${
-                        active ? "bg-ink text-paper" : "bg-transparent text-ink hover:bg-bg-elevated"
-                      }`}
-                    >
-                      <FileText size={14} className="mt-0.5 flex-none" aria-hidden="true" />
-                      <span className="flex flex-col gap-1">
-                        <span>{doc.title}</span>
-                        <span
-                          className={`font-normal normal-case tracking-normal ${
-                            active ? "text-paper/70" : "text-ink-soft"
-                          }`}
-                        >
-                          {doc.category} · {doc.period}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
+
+                {credentialGroups.map((group) => (
+                  <div key={group.id} className="flex-none">
+                    <div className="px-5 pb-1.5 pt-3 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent-2 sm:px-6">
+                      {group.label}
+                    </div>
+                    {group.documents.map((doc) => (
+                      <DocButton
+                        key={doc.id}
+                        doc={doc}
+                        active={doc.id === selectedId}
+                        onSelect={() => selectDoc(doc.id)}
+                      />
+                    ))}
+                  </div>
+                ))}
+
+                {standaloneDocuments.length > 0 && (
+                  <div className="flex-none border-t border-ink/20 pt-1">
+                    {standaloneDocuments.map((doc) => (
+                      <DocButton
+                        key={doc.id}
+                        doc={doc}
+                        active={doc.id === selectedId}
+                        onSelect={() => selectDoc(doc.id)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Preview + actions */}
