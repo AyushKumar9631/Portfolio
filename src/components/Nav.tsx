@@ -105,7 +105,7 @@ export default function Nav({
               className="inline-flex items-center gap-2 border-2 border-ink bg-ink px-4 py-2 font-mono text-xs font-bold uppercase tracking-[0.1em] text-bg transition-colors hover:bg-transparent hover:text-ink"
             >
               <Briefcase size={14} aria-hidden="true" />
-              Hire Me
+              Hire Him
             </button>
           </div>
 
@@ -154,7 +154,7 @@ export default function Nav({
                   className="flex w-full items-center justify-center gap-2 bg-ink px-6 py-4 font-mono text-sm font-bold uppercase tracking-widest text-bg transition-colors hover:text-accent-2"
                 >
                   <Briefcase size={14} aria-hidden="true" />
-                  Hire Me
+                  Hire Him
                 </button>
               </li>
             </motion.ul>
