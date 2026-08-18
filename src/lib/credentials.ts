@@ -164,31 +164,36 @@ export const credentialGroups: CredentialGroup[] = [
       },
     ],
   },
+  {
+    id: "school-education",
+    label: "School Education",
+    documents: [
+      {
+        id: "class-10-certificate",
+        title: "ICSE Class X Certificate",
+        category: "Certificate",
+        period: "2019 · Don Bosco Academy",
+        description:
+          "Board certificate for ICSE Class X, cleared in 2019 with 92.2% overall at Don Bosco Academy, Patna.",
+        sourceUrl:
+          "https://drive.google.com/file/d/14xULsuUejb7YWZNkIWVWpMSAbwVmzqW0/view?usp=sharing",
+      },
+      {
+        id: "class-12-certificate",
+        title: "CBSE Class XII Certificate",
+        category: "Certificate",
+        period: "2021 · Mithila Public School",
+        description:
+          "Board certificate for CBSE Class XII, cleared in 2021 with 84.5% aggregate at Mithila Public School, Araria.",
+        sourceUrl:
+          "https://drive.google.com/file/d/1VCW4Nu5zU808YoO9xBqR0fNsy_0GKBMp/view?usp=sharing",
+      },
+    ],
+  },
 ];
 
 /** Renders below the groups with no section header. */
-export const standaloneDocuments: CredentialDocument[] = [
-  {
-    id: "class-10-certificate",
-    title: "ICSE Class X Certificate",
-    category: "Certificate",
-    period: "2019 · Don Bosco Academy",
-    description:
-      "Board certificate for ICSE Class X, cleared in 2019 with 92.2% overall at Don Bosco Academy, Patna.",
-    sourceUrl:
-      "https://drive.google.com/file/d/14xULsuUejb7YWZNkIWVWpMSAbwVmzqW0/view?usp=sharing",
-  },
-  {
-    id: "class-12-certificate",
-    title: "CBSE Class XII Certificate",
-    category: "Certificate",
-    period: "2021 · Mithila Public School",
-    description:
-      "Board certificate for CBSE Class XII, cleared in 2021 with 84.5% aggregate at Mithila Public School, Araria.",
-    sourceUrl:
-      "https://drive.google.com/file/d/1VCW4Nu5zU808YoO9xBqR0fNsy_0GKBMp/view?usp=sharing",
-  },
-];
+export const standaloneDocuments: CredentialDocument[] = [];
 
 /** Flat list of every document, groups first (in declared order) then
  * standalone — used for defaults ("show the first doc") and counts. */

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, FileText, Download, Mail, Loader2, ExternalLink, Briefcase } from "lucide-react";
+import { X, FileText, Download, Mail, Loader2, ExternalLink, Briefcase, ChevronDown } from "lucide-react";
 import {
   credentialGroups,
   standaloneDocuments,
@@ -64,7 +64,15 @@ function DocButton({
 export default function HireMeModal({ open, onClose }: HireMeModalProps) {
   const [selectedId, setSelectedId] = useState<string>(allCredentialDocuments[0]?.id ?? "");
   const [previewLoading, setPreviewLoading] = useState(true);
+  // All groups expanded by default.
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(credentialGroups.map((group) => [group.id, true])),
+  );
   const panelRef = useRef<HTMLDivElement>(null);
+
+  function toggleGroup(id: string) {
+    setExpandedGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
 
   // Reset the selection back to the first document every time the modal
   // transitions from closed to open. This runs during render (React's
@@ -174,21 +182,48 @@ export default function HireMeModal({ open, onClose }: HireMeModalProps) {
                   {allCredentialDocuments.length} on file
                 </div>
 
-                {credentialGroups.map((group) => (
-                  <div key={group.id} className="flex-none">
-                    <div className="px-5 pb-1.5 pt-3 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent-2 sm:px-6">
-                      {group.label}
+                {credentialGroups.map((group) => {
+                  const expanded = expandedGroups[group.id] ?? true;
+                  return (
+                    <div key={group.id} className="flex-none">
+                      <button
+                        type="button"
+                        onClick={() => toggleGroup(group.id)}
+                        aria-expanded={expanded}
+                        className="flex w-full items-center justify-between gap-2 px-5 pb-1.5 pt-3 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent-2 transition-opacity hover:opacity-70 sm:px-6"
+                      >
+                        {group.label}
+                        <ChevronDown
+                          size={12}
+                          aria-hidden="true"
+                          className={`flex-none transition-transform duration-200 ${
+                            expanded ? "rotate-0" : "-rotate-90"
+                          }`}
+                        />
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {expanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            {group.documents.map((doc) => (
+                              <DocButton
+                                key={doc.id}
+                                doc={doc}
+                                active={doc.id === selectedId}
+                                onSelect={() => selectDoc(doc.id)}
+                              />
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                    {group.documents.map((doc) => (
-                      <DocButton
-                        key={doc.id}
-                        doc={doc}
-                        active={doc.id === selectedId}
-                        onSelect={() => selectDoc(doc.id)}
-                      />
-                    ))}
-                  </div>
-                ))}
+                  );
+                })}
 
                 {standaloneDocuments.length > 0 && (
                   <div className="flex-none border-t border-ink/20 pt-1">
