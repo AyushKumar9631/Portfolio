@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Lora, Inter, Oswald } from "next/font/google";
 import MotionProvider from "@/components/MotionProvider";
 import "./globals.css";
@@ -25,6 +25,26 @@ export const metadata: Metadata = {
   title: "Ayush Kumar — Full-Stack Developer & ML Engineer",
   description:
     "Portfolio of Ayush Kumar — building intelligent systems where deep learning, full-stack development, and clean engineering meet.",
+};
+
+// Forces a fixed 1280px layout viewport instead of `device-width`. This is
+// the same mechanism behind a browser's "Desktop site" toggle: mobile
+// browsers render the page as if the screen were 1280px wide (so every
+// `sm:`/`md:`/`lg:` class resolves exactly like it does on a laptop, e.g.
+// the masthead's `sm:flex-row` byline stays one line) then auto-zoom the
+// whole layout out to fit the physical screen. No `initialScale` is set on
+// purpose — that's what tells the browser to compute the zoom itself.
+// Desktop browsers ignore the viewport meta tag entirely, so this has zero
+// effect above 1280px — nothing on the PC side changes.
+export const viewport: Viewport = {
+  width: 1280,
+  // Next seeds `initialScale: 1` by default and only overrides keys that
+  // are actually present here — so this has to be explicitly nulled out,
+  // not just omitted, or the tag ends up as
+  // "width=1280, initial-scale=1", which pins the zoom at 1:1 and makes
+  // mobile browsers show a cropped, horizontally-scrollable slice of the
+  // 1280px layout instead of auto-fitting/zooming it out to the screen.
+  initialScale: undefined,
 };
 
 export default function RootLayout({

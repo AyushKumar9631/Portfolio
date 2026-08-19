@@ -51,6 +51,11 @@
 
   html {
     scroll-behavior: smooth;
+    /* Stops mobile browsers auto-inflating font sizes to "help"
+       readability — that fights the fixed 1280px viewport (see
+       layout.tsx) which is already deliberately zoomed out. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
