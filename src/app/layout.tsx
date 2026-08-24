@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Lora, Inter, Oswald } from "next/font/google";
 import MotionProvider from "@/components/MotionProvider";
+import ChatWidget from "@/components/ChatWidget";
 import "./globals.css";
 
 const lora = Lora({
@@ -81,6 +82,10 @@ export default function RootLayout({
           </defs>
         </svg>
         <MotionProvider>{children}</MotionProvider>
+        {/* Lives outside MotionProvider so it never fades/remounts during
+            the route-transition crossfade — stays fixed and persistent
+            across every page. */}
+        <ChatWidget />
       </body>
     </html>
   );
