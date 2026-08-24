@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 // plain 401.
 const GROQ_API_KEY = process.env.GROQ_API_KEY?.trim();
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.3-70b-versatile";
+const MODEL = "openai/gpt-oss-120b";
 
 // Placeholder system prompt — just enough for the bot to talk. Gets
 // replaced with real portfolio context (profile, projects, stack) in a
