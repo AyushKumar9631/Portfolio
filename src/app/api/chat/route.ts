@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Server-only — never exposed to the client bundle (no NEXT_PUBLIC_ prefix).
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+// .trim() guards against a trailing newline/space sneaking in from a
+// copy-paste into Vercel's env var field — invisible in the dashboard,
+// but it breaks the Authorization header and Groq rejects it with a
+// plain 401.
+const GROQ_API_KEY = process.env.GROQ_API_KEY?.trim();
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = "llama-3.3-70b-versatile";
 
@@ -46,6 +50,7 @@ export async function POST(req: NextRequest) {
 
     if (!groqRes.ok) {
       const errText = await groqRes.text().catch(() => "");
+      console.error(`Groq API error ${groqRes.status}:`, errText);
       return NextResponse.json(
         { error: `Groq request failed (${groqRes.status})`, detail: errText },
         { status: 502 },
@@ -60,7 +65,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ reply });
-  } catch {
-    return NextResponse.json({ error: "Failed to reach Groq" }, { status: 502 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Groq fetch threw:", message);
+    return NextResponse.json({ error: "Failed to reach Groq", detail: message }, { status: 502 });
   }
 }
