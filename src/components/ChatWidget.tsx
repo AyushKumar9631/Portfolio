@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MessageCircle, X, Send } from "lucide-react";
+import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 
 // How long the "need anything ask me" pill stays out after the page
 // settles, and how long it waits before showing at all (lets the intro
@@ -10,9 +10,21 @@ import { MessageCircle, X, Send } from "lucide-react";
 const GREETING_DELAY_MS = 1200;
 const GREETING_VISIBLE_MS = 4000;
 
+type ChatMessage = { role: "user" | "assistant"; content: string };
+
+const WELCOME_MESSAGE: ChatMessage = {
+  role: "assistant",
+  content: "Evening. Ask me anything about Ayush's work, stack, or how to get in touch.",
+};
+
 export default function ChatWidget() {
   const [greetingOpen, setGreetingOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // One-shot greeting pill on first mount. Root layout never remounts on
   // client-side navigation (see MotionProvider), so this only plays once
@@ -38,9 +50,49 @@ export default function ChatWidget() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [chatOpen]);
 
+  // Keep the latest message in view as the conversation grows.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, loading]);
+
   function handleTriggerClick() {
     setGreetingOpen(false);
     setChatOpen((v) => !v);
+  }
+
+  async function sendMessage() {
+    const text = input.trim();
+    if (!text || loading) return;
+
+    const nextMessages = [...messages, { role: "user" as const, content: text }];
+    setMessages(nextMessages);
+    setInput("");
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: nextMessages }),
+      });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.reply) {
+        throw new Error(data?.error ?? "Something went wrong");
+      }
+
+      setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+    } catch {
+      setError("Couldn't reach the tip line. Try again in a moment.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    sendMessage();
   }
 
   const showGreetingText = greetingOpen && !chatOpen;
@@ -83,32 +135,57 @@ export default function ChatWidget() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 space-y-3 overflow-y-auto bg-paper-warm px-4 py-4">
-              <div className="max-w-[85%] border-2 border-ink bg-paper-bright px-3.5 py-2.5">
-                <p className="font-text text-sm leading-[1.5] text-ink">
-                  Evening. Ask me anything about Ayush&apos;s work, stack, or how to get in
-                  touch.
+            <div
+              ref={scrollRef}
+              className="flex-1 space-y-3 overflow-y-auto bg-paper-warm px-4 py-4"
+            >
+              {messages.map((m, i) => (
+                <div
+                  key={i}
+                  className={`max-w-[85%] border-2 border-ink px-3.5 py-2.5 ${
+                    m.role === "user" ? "ml-auto bg-ink text-paper" : "bg-paper-bright text-ink"
+                  }`}
+                >
+                  <p className="font-text text-sm leading-[1.5]">{m.content}</p>
+                </div>
+              ))}
+              {loading && (
+                <div className="flex max-w-[85%] items-center gap-2 border-2 border-ink bg-paper-bright px-3.5 py-2.5 text-ink">
+                  <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                  <span className="font-mono text-xs uppercase tracking-[0.08em] text-ink-soft">
+                    Typing…
+                  </span>
+                </div>
+              )}
+              {error && (
+                <p className="font-mono text-xs uppercase tracking-[0.08em] text-accent-2">
+                  {error}
                 </p>
-              </div>
+              )}
             </div>
 
-            {/* Input row — not wired up yet, next step */}
-            <div className="flex flex-none items-center gap-2 border-t-2 border-ink px-3 py-3">
+            {/* Input row */}
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-none items-center gap-2 border-t-2 border-ink px-3 py-3"
+            >
               <input
                 type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
                 placeholder="Type your tip…"
-                disabled
+                disabled={loading}
                 className="min-w-0 flex-1 border-2 border-ink/40 bg-paper px-3 py-2 font-text text-sm text-ink placeholder:text-ink-faint disabled:cursor-not-allowed disabled:opacity-60"
               />
               <button
-                type="button"
-                disabled
+                type="submit"
+                disabled={loading || !input.trim()}
                 aria-label="Send"
-                className="flex h-9 w-9 flex-none items-center justify-center border-2 border-ink bg-ink text-paper disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-9 w-9 flex-none items-center justify-center border-2 border-ink bg-ink text-paper transition-colors hover:bg-transparent hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-ink disabled:hover:text-paper"
               >
                 <Send size={14} aria-hidden="true" />
               </button>
-            </div>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>
