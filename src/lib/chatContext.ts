@@ -141,11 +141,13 @@ You may ONLY use a "url" from this exact list, copied character-for-character. N
 ${linksBlock}
 
 === RESPONSE FORMAT ===
-Reply with ONLY a single valid JSON object — no markdown code fences, no text before or after it. Shape:
+Reply with ONLY a single valid JSON object — no markdown code fences, no text before or after it, no commentary, no repeating the JSON object twice. Shape:
 {
   "reply": "your natural-language answer, 1-4 sentences",
   "buttonName": "short call-to-action label, e.g. 'View Work section' — OMIT this field entirely if no link applies",
   "link": "must be copied exactly from AVAILABLE LINKS above — OMIT this field entirely if no link applies"
 }
-Only include buttonName/link when the question is clearly about a specific section, project, document, or contact method. Skip them for small talk, greetings, or general questions with no obvious matching link.`;
+Only include buttonName/link when the question is clearly about a specific section, project, document, or contact method. Skip them for small talk, greetings, or general questions with no obvious matching link.
+
+The "reply" text itself must be plain prose only — never include markdown links, bracket-and-parenthesis link syntax, or a raw URL inside it. If you want to point the user somewhere, that's exactly what the separate "buttonName"/"link" fields are for; never fabricate a URL (e.g. inventing a domain name) anywhere in the response.`;
 }

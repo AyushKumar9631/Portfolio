@@ -19,11 +19,21 @@ const VALID_LINK_URLS = getValidLinkUrls();
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type BotReply = { reply: string; buttonName?: string; link?: string };
 
-/** The model is instructed to return raw JSON, but strip code-fences
- * defensively in case it wraps the object in ```json anyway. */
+/** The model is instructed to return raw JSON, but it sometimes wraps it
+ * in ```json fences, or (less often) writes normal prose and then
+ * appends the JSON object afterward instead of replacing it. Pulling out
+ * the substring between the first "{" and the last "}" recovers a clean
+ * object in both cases instead of failing JSON.parse on the leading
+ * text. */
 function extractJsonObject(text: string): string {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  return (fenced ? fenced[1] : text).trim();
+  const candidate = (fenced ? fenced[1] : text).trim();
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+  if (start !== -1 && end > start) {
+    return candidate.slice(start, end + 1);
+  }
+  return candidate;
 }
 
 /** Parses the model's JSON reply. Falls back to treating the raw text as

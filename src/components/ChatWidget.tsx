@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { MessageCircle, X, Send, Loader2, ArrowRight, ExternalLink } from "lucide-react";
 
 // How long the "need anything ask me" pill stays out after the page
@@ -39,6 +40,7 @@ function MessageLinkButton({
   link: string;
   onNavigate: () => void;
 }) {
+  const pathname = usePathname();
   const classes =
     "mt-2.5 inline-flex items-center gap-1.5 border-2 border-ink bg-ink px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-paper transition-colors hover:bg-transparent hover:text-ink";
 
@@ -51,8 +53,31 @@ function MessageLinkButton({
     );
   }
 
+  // Internal path, possibly with a "#section" hash (e.g. "/#work").
+  const hashIndex = link.indexOf("#");
+  const hash = hashIndex !== -1 ? link.slice(hashIndex + 1) : null;
+  const path = hashIndex !== -1 ? link.slice(0, hashIndex) || "/" : link;
+
+  function handleClick(e: React.MouseEvent) {
+    onNavigate();
+    // Next's router only re-scrolls a hash Link when the target URL
+    // differs from the current one. If we're already on the target page,
+    // the hash in the address bar is already set from a previous click,
+    // so Link treats a repeat click (or a fresh button pointing at the
+    // same section on a later turn) as a no-op. Scroll manually instead
+    // — this always works, first click or fiftieth.
+    if (hash && pathname === path) {
+      e.preventDefault();
+      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.replaceState(null, "", link);
+    }
+    // Otherwise we're crossing routes (e.g. from a case-file page back to
+    // "/"); that's always a genuine navigation, so let Link handle it —
+    // Next scrolls to the hash itself once the new page lands.
+  }
+
   return (
-    <Link href={link} onClick={onNavigate} className={classes}>
+    <Link href={link} onClick={handleClick} className={classes}>
       {buttonName}
       <ArrowRight size={12} aria-hidden="true" />
     </Link>
