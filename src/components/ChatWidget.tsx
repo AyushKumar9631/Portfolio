@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { MessageCircle, X, Send, Loader2, ArrowRight, ExternalLink } from "lucide-react";
 
 // How long the "need anything ask me" pill stays out after the page
 // settles, and how long it waits before showing at all (lets the intro
@@ -10,12 +11,53 @@ import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 const GREETING_DELAY_MS = 1200;
 const GREETING_VISIBLE_MS = 4000;
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  buttonName?: string;
+  link?: string;
+};
 
 const WELCOME_MESSAGE: ChatMessage = {
   role: "assistant",
   content: "Evening. Ask me anything about Ayush's work, stack, or how to get in touch.",
 };
+
+/** External destinations (other sites, docs, mailto) open in a new tab
+ * via a plain <a>. Internal ones (section anchors, case-file/career-log
+ * pages) use next/link so the site's route transition still applies. */
+function isExternalLink(link: string) {
+  return link.startsWith("http") || link.startsWith("mailto:");
+}
+
+function MessageLinkButton({
+  buttonName,
+  link,
+  onNavigate,
+}: {
+  buttonName: string;
+  link: string;
+  onNavigate: () => void;
+}) {
+  const classes =
+    "mt-2.5 inline-flex items-center gap-1.5 border-2 border-ink bg-ink px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-paper transition-colors hover:bg-transparent hover:text-ink";
+
+  if (isExternalLink(link)) {
+    return (
+      <a href={link} target="_blank" rel="noopener noreferrer" className={classes}>
+        {buttonName}
+        <ExternalLink size={12} aria-hidden="true" />
+      </a>
+    );
+  }
+
+  return (
+    <Link href={link} onClick={onNavigate} className={classes}>
+      {buttonName}
+      <ArrowRight size={12} aria-hidden="true" />
+    </Link>
+  );
+}
 
 export default function ChatWidget() {
   const [greetingOpen, setGreetingOpen] = useState(false);
@@ -82,7 +124,10 @@ export default function ChatWidget() {
         throw new Error(data?.error ?? "Something went wrong");
       }
 
-      setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.reply, buttonName: data.buttonName, link: data.link },
+      ]);
     } catch {
       setError("Couldn't reach the tip line. Try again in a moment.");
     } finally {
@@ -147,6 +192,13 @@ export default function ChatWidget() {
                   }`}
                 >
                   <p className="font-text text-sm leading-[1.5]">{m.content}</p>
+                  {m.buttonName && m.link && (
+                    <MessageLinkButton
+                      buttonName={m.buttonName}
+                      link={m.link}
+                      onNavigate={() => setChatOpen(false)}
+                    />
+                  )}
                 </div>
               ))}
               {loading && (
