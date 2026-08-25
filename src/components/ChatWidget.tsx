@@ -19,10 +19,40 @@ type ChatMessage = {
   link?: string;
 };
 
-const WELCOME_MESSAGE: ChatMessage = {
-  role: "assistant",
-  content: "Evening. Ask me anything about Ayush's work, stack, or how to get in touch.",
-};
+type Suggestion = { question: string; preview?: string };
+
+const SUGGESTIONS: Suggestion[] = [
+  { question: "Tell me about him", preview: "He's a …" },
+  { question: "Take me to his works" },
+  { question: "Show me his grade card" },
+];
+
+function SuggestionsPanel({ onPick }: { onPick: (question: string) => void }) {
+  return (
+    <div className="flex h-full flex-col justify-center gap-3">
+      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent-2">
+        Try Asking
+      </span>
+      <div className="flex flex-col gap-2">
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s.question}
+            type="button"
+            onClick={() => onPick(s.question)}
+            className="border-2 border-ink bg-paper-bright px-3.5 py-2.5 text-left text-ink transition-colors hover:bg-bg-elevated"
+          >
+            <span className="block font-text text-sm leading-[1.4]">{s.question}</span>
+            {s.preview && (
+              <span className="mt-0.5 block font-text text-xs italic text-ink-soft">
+                {s.preview}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /** External destinations (other sites, docs, mailto) open in a new tab
  * via a plain <a>. Internal ones (section anchors, case-file/career-log
@@ -87,7 +117,7 @@ function MessageLinkButton({
 export default function ChatWidget() {
   const [greetingOpen, setGreetingOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -127,8 +157,8 @@ export default function ChatWidget() {
     setChatOpen((v) => !v);
   }
 
-  async function sendMessage() {
-    const text = input.trim();
+  async function sendMessage(overrideText?: string) {
+    const text = (overrideText ?? input).trim();
     if (!text || loading) return;
 
     const nextMessages = [...messages, { role: "user" as const, content: text }];
@@ -154,7 +184,7 @@ export default function ChatWidget() {
         { role: "assistant", content: data.reply, buttonName: data.buttonName, link: data.link },
       ]);
     } catch {
-      setError("Couldn't reach the tip line. Try again in a moment.");
+      setError("Couldn't reach Jarvis. Try again in a moment.");
     } finally {
       setLoading(false);
     }
@@ -185,13 +215,13 @@ export default function ChatWidget() {
             <div className="flex flex-none items-center justify-between gap-3 border-b-2 border-ink px-4 py-3.5">
               <div>
                 <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent-2">
-                  Tip Line
+                  Assistance
                 </span>
                 <h2
                   id="chat-widget-title"
                   className="mt-0.5 font-display text-[18px] leading-none text-ink"
                 >
-                  Got A Lead?
+                  Need Something? Ask Jarvis!!
                 </h2>
               </div>
               <button
@@ -209,6 +239,9 @@ export default function ChatWidget() {
               ref={scrollRef}
               className="flex-1 space-y-3 overflow-y-auto bg-paper-warm px-4 py-4"
             >
+              {messages.length === 0 && !loading && (
+                <SuggestionsPanel onPick={(q) => sendMessage(q)} />
+              )}
               {messages.map((m, i) => (
                 <div
                   key={i}
@@ -250,7 +283,7 @@ export default function ChatWidget() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your tip…"
+                placeholder="Ask Jarvis…"
                 disabled={loading}
                 className="min-w-0 flex-1 border-2 border-ink/40 bg-paper px-3 py-2 font-text text-sm text-ink placeholder:text-ink-faint disabled:cursor-not-allowed disabled:opacity-60"
               />
