@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
-  const { error } = await client.from("daily_log").select("log_date").limit(1);
+  const { error } = await client.from("activities").select("id").limit(1);
 
   if (error) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });

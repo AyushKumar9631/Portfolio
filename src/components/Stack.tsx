@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { stack, type StackItem } from "@/lib/data";
-import DailyLog from "@/components/DailyLog";
+import Activities from "@/components/Activities";
 
 // "Finding" stamp text + whether this entry gets the highlighted (accent)
 // stamp treatment vs. the neutral ink one. Content values (entry.detail,
@@ -103,7 +103,7 @@ export default function Stack({
           Findings are illustrative — what he reaches for day to day, not a ranking.
         </p>
 
-        <DailyLog isAdmin={isAdmin} onAdminUnlock={onAdminUnlock} />
+        <Activities isAdmin={isAdmin} onAdminUnlock={onAdminUnlock} />
       </div>
     </section>
   );
