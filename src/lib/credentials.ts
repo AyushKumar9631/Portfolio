@@ -52,6 +52,22 @@ export function getDownloadUrl(doc: CredentialDocument): string {
 
 export const credentialGroups: CredentialGroup[] = [
   {
+    id: "resume",
+    label: "Resume",
+    documents: [
+      {
+        id: "resume",
+        title: "Resume",
+        category: "Resume",
+        period: "Current",
+        description: "Up-to-date resume covering experience, projects, and skills.",
+        sourceUrl:
+          "https://drive.google.com/file/d/180unwyrrJbh7z-ZeloRWEM1DQUJnpGR3/view?usp=sharing",
+        tag: "Latest",
+      },
+    ],
+  },
+  {
     id: "internships",
     label: "Internships",
     documents: [

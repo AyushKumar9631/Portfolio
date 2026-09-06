@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, Pencil, Plus, ListChecks } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 import TicTacToe from "@/components/TicTacToe";
 import ActivityFormModal, { type Activity } from "@/components/ActivityFormModal";
 import { GithubIcon } from "@/components/icons/BrandIcons";
+
+// How many activity cards show before the list scrolls. The container's
+// max-height is measured off the actual rendered cards (see below) rather
+// than a guessed px value, since each card's height varies with how long
+// its description/tags/links are.
+const VISIBLE_ACTIVITIES = 2;
 
 function formatDate(dateStr: string) {
   return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-GB", {
@@ -27,6 +33,8 @@ export default function Activities({
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Activity | null>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const [listMaxHeight, setListMaxHeight] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +68,30 @@ export default function Activities({
       cancelled = true;
     };
   }, []);
+
+  // Cap the list's visible height at exactly how tall the first
+  // VISIBLE_ACTIVITIES cards render (heights vary with description/tag/link
+  // length, so this is measured off the real DOM rather than guessed).
+  // Re-measures whenever the data changes (add/edit/delete/initial load)
+  // or the viewport is resized.
+  useLayoutEffect(() => {
+    function recalc() {
+      const ul = listRef.current;
+      if (!ul || ul.children.length <= VISIBLE_ACTIVITIES) {
+        setListMaxHeight(undefined);
+        return;
+      }
+      let height = 0;
+      for (let i = 0; i < VISIBLE_ACTIVITIES; i++) {
+        height += (ul.children[i] as HTMLElement).offsetHeight;
+      }
+      setListMaxHeight(height);
+    }
+
+    recalc();
+    window.addEventListener("resize", recalc);
+    return () => window.removeEventListener("resize", recalc);
+  }, [activities]);
 
   function openAdd() {
     setEditing(null);
@@ -145,7 +177,11 @@ export default function Activities({
         )}
 
         {activities !== null && activities.length > 0 && (
-          <ul>
+          <div
+            className="overflow-y-auto overscroll-contain"
+            style={{ maxHeight: listMaxHeight }}
+          >
+            <ul ref={listRef}>
             {activities.map((activity, i) => (
               <li
                 key={activity.id}
@@ -217,7 +253,8 @@ export default function Activities({
                 )}
               </li>
             ))}
-          </ul>
+            </ul>
+          </div>
         )}
       </div>
 
