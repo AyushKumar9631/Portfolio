@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { stack, type StackItem } from "@/lib/data";
 import Activities from "@/components/Activities";
+import ActivityGraphs from "@/components/ActivityGraphs";
 
 // "Finding" stamp text + whether this entry gets the highlighted (accent)
 // stamp treatment vs. the neutral ink one. Content values (entry.detail,
@@ -104,6 +105,7 @@ export default function Stack({
         </p>
 
         <Activities isAdmin={isAdmin} onAdminUnlock={onAdminUnlock} />
+        <ActivityGraphs />
       </div>
     </section>
   );
